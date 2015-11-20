@@ -1,4 +1,4 @@
-function [pooledData] = pooledConeResponse(obj, sensor)
+function [pooledData] = pooledConeResponse_orig(obj, sensor, varargin)
 
 % pooledConeResponse: a utility function that computes the pooled response
 % across the cone mosaic as a step in the ideal observer computation found
@@ -22,8 +22,13 @@ nSteps = size(coneCurrent, 3);
 [sz1, sz2, sz3] = size(coneCurrent);
 coneCurrentRS = reshape(coneCurrent(:,:,1:sz3),[sz1*sz2],nSteps);
 
-totalIters = 40;
-fprintf('\nGenerating pooled noisy responses:\n');
+if isempty(varargin)
+    totalIters = 250;
+else
+    totalIters = varargin{1};
+end
+
+fprintf('\nGenerating pooled noisy responses:     \n');
 for iter = 1:totalIters
     
     fprintf('\b\b\b%02d%%', round(100*iter/totalIters));
@@ -90,3 +95,4 @@ end
 
 % toc
 end
+fprintf('\n');
