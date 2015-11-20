@@ -182,26 +182,29 @@ os = osCreate('linear');
 os = osCompute(os, sensor);
 
 % Pool all of the noisy responses across each cone type
-pooledData{contrastInd} = pooledConeResponse_orig(os, sensor, noiseIterations);
+pooledData{contrastInd} = pooledConeResponse(os, sensor, noiseIterations);
 
 if contrastInd > 1
     
     % Visulaize pooled responses in LMS space
     figure; scatter3(pooledData{1}(:,1),pooledData{1}(:,2),pooledData{1}(:,3))
     hold on; scatter3(pooledData{contrastInd}(:,1),pooledData{contrastInd}(:,2),pooledData{contrastInd}(:,3))
+    xlabel('pooled S cone response'); ylabel('pooled M cone response'); zlabel('pooled L cone response');
+    
 
     % Fit a linear svm classifier between pooled responses at contrast = 0
     % and contrast = contrastArr(contrastInd):
     m1 = fitcsvm([pooledData{1}; pooledData{contrastInd}], [ones(noiseIterations,1); -1*ones(noiseIterations,1)], 'KernelFunction', 'linear');
     % Calculate cross-validated accuracy based on model:
     cv = crossval(m1);    
-    rocarea(contrastInd) = 1-kfoldLoss(cv);
+    rocarea(contrastInd) = 1-kfoldLoss(cv)'
+    
+    title(sprintf('Pooled responses in LMS space, p(Correct) = %2.0f', 100*rocarea(contrastInd)));
+    set(gca,'fontsize',16);
 end
 
 clear sensor scene oi display params os
 end%colorInd
-end%contrastInd
-
 %%
 
 %% Fit psychometric curve to thresholds as a function of contrast
@@ -230,6 +233,9 @@ thresh1 = fitresult.a;
 title(sprintf('Detection, \\alpha = %1.2f',(thresh1)));
 set(gca,'fontsize',16')
 axis([0 1 0.5 1]);
+
+
+end%contrastInd
 
 %% Show the movie of volts
 % 

@@ -1,4 +1,4 @@
-function [pooledData] = pooledConeResponse(obj, sensor)
+function [pooledData] = pooledConeResponse_orig(obj, sensor, varargin)
 
 % pooledConeResponse: a utility function that computes the pooled response
 % across the cone mosaic as a step in the ideal observer computation found
@@ -22,48 +22,29 @@ nSteps = size(coneCurrent, 3);
 [sz1, sz2, sz3] = size(coneCurrent);
 coneCurrentRS = reshape(coneCurrent(:,:,1:sz3),[sz1*sz2],nSteps);
 
+if isempty(varargin)
+    totalIters = 250;
+else
+    totalIters = varargin{1};
+end
 
+fprintf('\nGenerating pooled noisy responses:     \n');
+for iter = 1:totalIters
+    
+    fprintf('\b\b\b%02d%%', round(100*iter/totalIters));
+    
 for cone_type = 2:4
     % Pull out the appropriate 1D filter for the cone type.
     % Filter_cone_type = newIRFs(:,cone_type-1);
     switch cone_type
         case 2
             FilterConeType = obj.sConeFilter;
-            
-            FilterConeType = (FilterConeType - mean(FilterConeType))./max(FilterConeType - mean(FilterConeType));
-            CM{2} = convmtx(FilterConeType, size(coneCurrentRS,2));
         case 3
-            FilterConeType = obj.mConeFilter;            
-            
-            FilterConeType = (FilterConeType - mean(FilterConeType))./max(FilterConeType - mean(FilterConeType));
-            CM{3} = convmtx(FilterConeType, size(coneCurrentRS,2));
+            FilterConeType = obj.mConeFilter;
         case 4
-            FilterConeType = obj.lConeFilter;            
-            
-            FilterConeType = (FilterConeType - mean(FilterConeType))./max(FilterConeType - mean(FilterConeType));
-            CM{4} = convmtx(FilterConeType, size(coneCurrentRS,2));
+            FilterConeType = obj.lConeFilter;
     end
-end
-
-totalIters = 50;%400;
-fprintf('\nGenerating pooled noisy responses:\n');
-for iter = 1:totalIters
-%     tic
-    
-    fprintf('\b\b\b%02d%%', round(100*iter/totalIters));
-%     tmtx = 0; tconv = 0;
-for cone_type = 2:4
-    % Pull out the appropriate 1D filter for the cone type.
-    % Filter_cone_type = newIRFs(:,cone_type-1);
-%     switch cone_type
-%         case 2
-%             FilterConeType = obj.sConeFilter;
-%         case 3
-%             FilterConeType = obj.mConeFilter;
-%         case 4
-%             FilterConeType = obj.lConeFilter;
-%     end
-%     FilterConeType = (FilterConeType - mean(FilterConeType))./max(FilterConeType - mean(FilterConeType));
+    FilterConeType = (FilterConeType - mean(FilterConeType))./max(FilterConeType - mean(FilterConeType));
     
     
     % Only place the output signals corresponding to pixels in the mosaic
@@ -76,25 +57,16 @@ for cone_type = 2:4
     if (ndims(coneCurrent) == 3)
         
         % pre-allocate memory
-%         adaptedDataSingleType = zeros(size(coneCurrentSingleType));
+        adaptedDataSingleType = zeros(size(coneCurrentSingleType));
         
-%         tic; 
-%         CM = convmtx(FilterConeType, length(coneCurrentSingleType(1, :)));
-        CMmat = CM{cone_type};
-        adaptedDataSingleType = (CMmat*coneCurrentSingleType')';
-%         tmtx = tmtx+toc
-%         toc;
-        
-%         tic;
-%         for y = 1:size(coneCurrentSingleType, 1)
-%             noisySignal = squeeze((coneCurrentSingleType(y, :)));
-%             tempData = conv(noisySignal, FilterConeType);
-%             %        tempData = real(ifft(conj(fft(squeeze(coneCurrent(x, y, :))) .* FilterFFT)));
-% 
-%             adaptedDataSingleType(y, :) = tempData(1:nSteps);
-%              
-%         end
-%         tconv = tconv+toc
+        for y = 1:size(coneCurrentSingleType, 1)
+            noisySignal = squeeze((coneCurrentSingleType(y, :)));
+            tempData = conv(noisySignal, FilterConeType);
+            %        tempData = real(ifft(conj(fft(squeeze(coneCurrent(x, y, :))) .* FilterFFT)));
+
+            adaptedDataSingleType(y, :) = tempData(1:nSteps);
+             
+        end
         
         %     elseif (ndims(coneCurrent) == 2)
         %
@@ -113,13 +85,14 @@ for cone_type = 2:4
         %         end
         %     end
         
-        adaptedDataRS(cone_locations,:) = adaptedDataSingleType(:,1:666);
+        adaptedDataRS(cone_locations,:) = adaptedDataSingleType;
         pooledData(iter, cone_type-1) = mean(adaptedDataSingleType(:));
         
     end
-%     toc
+    
     
 end
 
 % toc
 end
+fprintf('\n');
