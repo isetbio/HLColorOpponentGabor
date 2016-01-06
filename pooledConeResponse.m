@@ -18,7 +18,7 @@ cone_mosaic = sensorGet(sensor,'cone type');
 [sz1, sz2] = size(cone_mosaic);
 
 % Get cone current signal for each cone in the mosaic over time.
-coneCurrent = os.ConeCurrentSignal;
+coneCurrent = osGet(os,'coneCurrentSignal');
 
 % Get number of time steps.
 nSteps = size(coneCurrent, 3);
