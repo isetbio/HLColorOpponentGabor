@@ -60,11 +60,11 @@ wFlag = ieSessionGet('wait bar');
 
 %% Specify parameters for contrast values and noise repititions
 
-% contrastArr = [0,1];% 
-contrastArr = (0:0.25:1); % must start with 0
+contrastArr = [0,1];% 
+% contrastArr = (0:0.25:1); % must start with 0
 nContrast = length(contrastArr);
 
-noiseIterations = 50;    % more iterations will improve accuracy but take longer!
+noiseIterations = 500;    % more iterations will improve accuracy but take longer!
 pooledData = cell(1,nContrast);
 rocArea = zeros(1,nContrast);
 
@@ -83,7 +83,7 @@ for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-
         params.color = colorInd;                     % 1 = s_iso, 2 = L-M, 3 = LMS, 4 = L-M
         params.image_size = 64;                      % scene is (image_size X image_size) pixels
         params.fov = 0.6;
-        params.nSteps = 6;
+        params.nSteps = 666;
         
         stimulusRGBdata = imageHarmonicColor(params); % sceneCreateGabor(params);
         
