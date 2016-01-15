@@ -1,11 +1,14 @@
 %% t_colorOpponentGabor
 %
 % Model cone responses for the experiment on detection of Gabor color
-% opponent stimuli in "Chromatic detection from cone photoreceptors to V1
-% neurons to behavior in rhesus monkeys" by Horwitz, Hass, Angueyra,
-% Lindbloom-Brown & Rieke, J. Neuroscience, 2015.
+% opponent stimuli in 
 %
-% Outline:
+%  Chromatic detection from cone photoreceptors to V1 neurons to behavior
+%  in rhesus monkeys
+%   Horwitz, Hass, Angueyra, Lindbloom-Brown & Rieke,
+%   J. Neuroscience, 2015 (submitted)
+%
+% Script outline:
 %     1. Build scene as a color-opponent Gabor patch with Horwitz Lab
 %         display and imageHarmonicColor (to integrate with
 %         imageHarmonicColor). 
@@ -40,80 +43,84 @@
 %         and beta is the slope of the curve.
 %
 % JRG/NC/BW ISETBIO Team, Copyright 2015
-%
-%
-% **************************
-% PROBLEM TO FIX:
-%   THIS CODE WILL ONLY WORK IF @osLinear/osCompute.m line 31 is changed to
-%   isomerizations = sensorGet(sensor, 'photon rate');
-%   The osAddNoise function adds too much noise if cone current is computed
-%   based on 'photons' as it currently is.
-% Ask Fred about this!
-% **************************
 
 
-% Init
-clear
-% ieInit
+ieInit
+clear all
 ieSessionSet('wait bar', 'off')
 wFlag = ieSessionGet('wait bar');
 
 %% Specify parameters for contrast values and noise repititions
 
-contrastArr = [0,1];% 
+nContrast   = 2;
+maxContrast = linspace(0,1,nContrast);
+
+% contrastArr = [0,1];% 
 % contrastArr = (0:0.25:1); % must start with 0
-nContrast = length(contrastArr);
+% nContrast = length(contrastArr);
 
 noiseIterations = 500;    % more iterations will improve accuracy but take longer!
-pooledData = cell(1,nContrast);
-rocArea = zeros(1,nContrast);
+pooledData      = cell(1,nContrast);
+rocArea         = zeros(1,nContrast);
 
-for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-S
+% Load the display from the Horwitz Lab
+display = displayCreate('CRT-Sony-HorwitzLab');
+
+% Basic human optics parameters.  Perhaps we need to get the macaque optics
+% built here.
+oi  = oiCreate('wvf human');
+
+%% Loop over color and contrast to build the response level
+%
+% The color index chooses the stimulus color.
+% The four possible values from the original paper are
+%  1 = S-cone isolating
+%  2 = L-M opponent
+%  3 = L-M+S
+%  4 = L-M-S
+for colorInd = 2 
     for contrastInd = 1:nContrast   % contrastInd = 1;
         tic
         
-        %% Set parameters for building the dynamic scene/oi/sensor
-        % The stimulus consists of a color opponent Gabor patch with phase varying
-        % over time. The parameters for the stimulus are set according to Fig. 6 of
-        % the manuscript.
+        % Set parameters for building the dynamic scene/oi/sensor The
+        % stimulus consists of a color opponent Gabor patch whose phase
+        % varies over time. The stimulus parameters specified in Fig. 6 of
+        % the manuscript. 
         
         % parameters found in Fig. 6 caption
         params = paramsGaborColorOpponent();
-        params.contrast = contrastArr(contrastInd);  % set max contrast of gabor
-        params.color = colorInd;                     % 1 = s_iso, 2 = L-M, 3 = LMS, 4 = L-M
-        params.image_size = 64;                      % scene is (image_size X image_size) pixels
-        params.fov = 0.6;
-        params.nSteps = 666;
+        params.contrast = 0;                  % set max contrast of gabor
+        params.color = colorInd;              % 1 = s_iso, 2 = L-M, 3 = LMS, 4 = L-M
+        params.image_size = 64;               % scene is (image_size X image_size) pixels
+        params.fov        = 0.6;
+        params.nSteps     = 120; % 666;
+        params.maxContrast = maxContrast;
         
+        nSteps = params.nSteps;
+        % This is the contrast at each step in the simulation.  It ramps up
+        % to the max (1 in this case), stays there, and then ramps back
+        % down.
+        timeContrast = ...
+            [linspace(0,1,(1/4)*nSteps), ...
+             ones(1,nSteps/2),...
+             linspace(1,0,(1/4)*nSteps)];
+        % plot(timeContrast)
+            
+        % We build a dummy scene here just so we can subsequently calculate
+        % the sensor size.  But this scene itself is not used.  Rather we
+        % build a series of scenes below.
         stimulusRGBdata = imageHarmonicColor(params); % sceneCreateGabor(params);
-        
-%         stimulusRGBdata = rgbGaborColorOpponentNormalized(params); % sceneCreateGabor(params);
-        %% Build the display and scene from the rgb data
-        
-        % Load the display from the Horwitz Lab
-        display = displayCreate('CRT-Sony-HorwitzLab');
-        
-        % Generate scene object from stimulus RGB matrix and display object
         scene = sceneFromFile(stimulusRGBdata, 'rgb', params.meanLuminance, display);
         % vcAddObject(scene); sceneWindow;
         
         %% Initialize the optics and the sensor
+              
+        coneP = coneCreate; % The cone properties properties
         
-        % % According to the paper, cone collecting area is 0.6 um^2
-        % wave = sceneGet(scene,'wave');
-        % pixel = pixelCreate('human', wave);
-        % pixel = pixelSet(pixel, 'pd width', 0.774e-6); % photo-detector width
-        % pixel = pixelSet(pixel, 'pd height', 0.774e-6);
-        
-        oi  = oiCreate('wvf human');
-        sensor = sensorCreate('human');
-        
-        % % % Uncomment when eccentricity branch is merged back!
-        coneP = coneCreate;%
         % see caption for Fig. 4 of Horwitz, Hass, Rieke, 2015, J. Neuro.
         retinalPosDegAz = 5; retinalPosDegEl = -3.5;
         retinalRadiusDegrees = sqrt(retinalPosDegAz^2+retinalPosDegEl^2);
-        retinalPolarDegrees = abs(atand(retinalPosDegEl/retinalPosDegAz));
+        retinalPolarDegrees  = abs(atand(retinalPosDegEl/retinalPosDegAz));
         retinalPos = [retinalRadiusDegrees retinalPolarDegrees]; whichEye = 'right';
         sensor = sensorCreate('human', [coneP], [retinalPos], [whichEye]);
         
@@ -121,17 +128,25 @@ for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-
         sensor = sensorSet(sensor, 'exp time', params.expTime); % 1 ms
         sensor = sensorSet(sensor, 'time interval', params.timeInterval); % 1 ms
         
-        % % macular pigment absorbance was scaled to 0.35 at 460 nm
+        % This computes with no sensor or photon noise, just the mean
+        sensor = sensorSet(sensor,'noise flag',0);
+
+        % According to the paper, cone collecting area is 0.6 um^2
+        % sensor = sensorSet(sensor 'pixel pd width', 0.774e-6); % photo-detector width
+        % sensor = sensorSet(sensor, 'pixel pd height', 0.774e-6);
+       
+        % Macular pigment is attached to the sensor
+        % macular pigment absorbance was scaled to 0.35 at 460 nm
         % macular = sensorGet(sensor, 'human macular');
         % macular = macularSet(macular, 'density', 0.35);
         % sensor = sensorSet(sensor, 'human macular', macular);
         
-        %% Compute a dynamic set of cone absorptions
-        
+        % Compute a dynamic set of cone absorptions
         % ieSessionSet('wait bar',true);
+        fprintf('Computing dynamic scene/oi/sensor data    ');
+        
         if wFlag, wbar = waitbar(0,'Stimulus movie'); end
         
-        fprintf('Computing dynamic scene/oi/sensor data    ');
         % Loop through frames to build movie
         for t = 1 : params.nSteps
             
@@ -141,33 +156,37 @@ for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-
             
             % Update the phase of the Gabor
             params.ph = 2*pi*(t-1)/params.nSteps; % one period over nSteps
+            params.contrast = params.maxContrast(contrastInd)*timeContrast(t);
+            
             % scene = sceneCreate('harmonic', params);
             % scene = sceneSet(scene, 'h fov', fov);
             
+            % The imageHarmonicColor should be moved to ISETBIO.
             stimulusRGBdata = imageHarmonicColor(params); % sceneCreateGabor(params);
-%             stimulusRGBdata = rgbGaborColorOpponentNormalized(params);
+            
             scene = sceneFromFile(stimulusRGBdata, 'rgb', params.meanLuminance, display);
             scene = sceneSet(scene, 'h fov', params.fov);
             
-            % Get scene RGB data
-            % sceneRGB(:,:,t,:) = sceneGet(scene,'rgb');
-            
+            % The mean scene luminance is set to 200 cd/m2, based on the
+            % calibration of the monitor
             scene = sceneAdjustLuminance(scene, 200);
-            if t < 160 %nSteps / 4
-                scene = sceneAdjustLuminance(scene, 200 * (t/(160)) );
-                % elseif (t >= nSteps / 4) && (t <= 3 * nSteps / 4)
-            elseif (t >= 160) && (t <= 160+346)
-                scene = sceneAdjustLuminance(scene, 200);
-            elseif t > 160+346 %3 * nSteps / 4
-                scene = sceneAdjustLuminance(scene, 200 * (((160+346+160) - t)/160) );
-            end
+            
+            % Now adjust the stimulus over time
+            %             nSteps = params.nSteps;
+            %             if t <  ((1/4)*nSteps)
+            %                 scene = sceneAdjustLuminance(scene, 200 * (t/(160)) );
+            %                 % elseif (t >= nSteps / 4) && (t <= 3 * nSteps / 4)
+            %             elseif (t >= (1/4) *nSteps) && (t <= (3/4 * nSteps))
+            %                 scene = sceneAdjustLuminance(scene, 200);
+            %             elseif t > (3/4 * nSteps)
+            %                 scene = sceneAdjustLuminance(scene, 200 * (((nSteps) - t)/160) );
+            %             end
             
             % oi  = oiCreate('wvf human');
             % Compute optical image
             oi = oiCompute(oi, scene);
             
             % Compute absorptions
-            sensor = sensorSet(sensor,'noise flag',0);
             sensor = sensorCompute(sensor, oi);
             
             if t == 1
@@ -177,6 +196,8 @@ for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-
             
             volts(:,:,t) = sensorGet(sensor, 'volts');
             
+            % In case we need to visualize, you can do this on each
+            % iteration
             % vcAddObject(scene); sceneWindow
             % pause(.1);
         end
@@ -192,7 +213,7 @@ for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-
         % Create the outer segment object
         os = osCreate('linear');
         
-        % Compute the photocurrent
+        % Compute the photocurrent for the whole time series
         os = osCompute(os, sensor);
         
         % Pool all of the noisy responses across each cone type
@@ -209,17 +230,25 @@ for colorInd = 2 % choose from 1:4, where 1 = s_iso, 2 = L-M, 3 = LM+S, 4 = L-M-
             scatter3(pooledData{contrastInd}(:,1),pooledData{contrastInd}(:,2),pooledData{contrastInd}(:,3))
             xlabel('pooled S cone response'); ylabel('pooled M cone response'); zlabel('pooled L cone response');
             
-            % % Fit a linear svm classifier between pooled responses at contrast = 0
-            % % and contrast = contrastArr(contrastInd):
-            m1 = fitcsvm([pooledData{1}; pooledData{contrastInd}], [ones(noiseIterations,1); -1*ones(noiseIterations,1)], 'KernelFunction', 'linear');
-            % % Calculate cross-validated accuracy based on model:
-            cv = crossval(m1);
-            rocArea(contrastInd) = 1-kfoldLoss(cv)'
-            % % perfcurve for roc plot
-            % nFoldCrossVal = 5;
-            % [acc,w] = svmClassifyAcc([pooledData{1}; pooledData{contrastInd}],[ones(noiseIterations,1); -1*ones(noiseIterations,1)],nFoldCrossVal,'linear')
-            % rocArea(contrastInd) = 1-acc(2);
-    
+            % Fit a linear svm classifier between pooled responses at contrast = 0
+            % and contrast = contrastArr(contrastInd):
+            
+            % If you have the statistics toolbox
+            if exist('fitcsvm','file');
+                m1 = fitcsvm([pooledData{1}; pooledData{contrastInd}], [ones(noiseIterations,1); -1*ones(noiseIterations,1)], 'KernelFunction', 'linear');
+                % Calculate cross-validated accuracy based on model:
+                cv = crossval(m1);
+                rocArea(contrastInd) = 1-kfoldLoss(cv)';
+            else
+                % Use the ISETBIO libsvm 
+                nFoldCrossVal = 5;
+                % NEEDS TO BE CHECKED.   ASK HJ.
+                [acc,w] = svmClassifyAcc([pooledData{1}; pooledData{contrastInd}], ...
+                    [ones(noiseIterations,1); -1*ones(noiseIterations,1)], ...
+                    nFoldCrossVal,'linear');
+                % perfcurve for roc plot
+                rocArea(contrastInd) = 1-acc(2);
+            end
             
             title(sprintf('Pooled responses in LMS space, p(Correct) = %2.0f', 100*rocArea(contrastInd)));
             set(gca,'fontsize',14);
