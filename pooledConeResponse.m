@@ -1,15 +1,30 @@
 function [pooledData] = pooledConeResponse(os, sensor, varargin)
-% Computes the pooled response across the cone mosaic
+% Computes the pooled response across the cone mosaic.
 %
 %  [pooledData] = pooledConeResponse(os, sensor, varargin)
 %
-% The pooling across cones and times uses an ideal observer computation
+% The pooling across cones and times is an ideal observer computation
 % found in Hass, Horwitz, Angueyra, Lindbloom-Brown & Rieke, "Chromatic
 % Detection from cone photorectpors to V1 neurons to behavior in rhesus
 % monkeys," (2015).
+% 
+% The outer segment object stores the noisy cone current response in an
+% [x,y,t] matrix composed of time-series responses of a spatial mosaic of
+% L, M and S cones. This function pools the response for each type of cone
+% over the whole time series and across all positions, reducing the [x,y,t]
+% matrix to a single point (L pooled, M pooled, S pooled). The pooling is
+% looped totalIters times, and in each iteration a new noisy [x,y,t] cone
+% current response is generated from the noiseless version and compressed
+% to a single point (L pooled, M pooled, S pooled), generating totalIters
+% points in 3D space. A linear classifier is then applied to discriminate
+% between the clouds of points for different contrast levels.
+% 
+% The actual pooling operation consists of applying a matched filter by
+% projecting the time series response for each spatial location back onto
+% the cone's linear impulse response, and taking its mean over space and
+% time for all cones of a given type.
 %
-% See also: t_colorGaborDetection.m (the basic idea of the pooling is
-% described) 
+% See also: t_colorGaborDetection.m.
 %
 % NC/JG ISETBIO Team, 2015
 

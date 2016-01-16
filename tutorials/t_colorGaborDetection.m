@@ -52,14 +52,14 @@ wFlag = ieSessionGet('wait bar');
 
 %% Specify parameters for contrast values and noise repititions
 
-nContrast   = 2;
+nContrast   = 4;
 maxContrast = linspace(0,1,nContrast);
 
 % contrastArr = [0,1];% 
 % contrastArr = (0:0.25:1); % must start with 0
 % nContrast = length(contrastArr);
 
-noiseIterations = 500;    % more iterations will improve accuracy but take longer!
+noiseIterations = 100;    % more iterations will improve accuracy but take longer!
 pooledData      = cell(1,nContrast);
 rocArea         = zeros(1,nContrast);
 
@@ -93,17 +93,17 @@ for colorInd = 2
         params.color = colorInd;              % 1 = s_iso, 2 = L-M, 3 = LMS, 4 = L-M
         params.image_size = 64;               % scene is (image_size X image_size) pixels
         params.fov        = 0.6;
-        params.nSteps     = 120; % 666;
-        params.maxContrast = maxContrast;
+        params.nSteps     = 60; % 666; % 160+346+160
+        params.contrast = maxContrast(contrastInd);
         
-        nSteps = params.nSteps;
         % This is the contrast at each step in the simulation.  It ramps up
         % to the max (1 in this case), stays there, and then ramps back
         % down.
-        timeContrast = ...
-            [linspace(0,1,(1/4)*nSteps), ...
-             ones(1,nSteps/2),...
-             linspace(1,0,(1/4)*nSteps)];
+%         timeContrast = ...
+%             [linspace(0,1,(1/4)*params.nSteps), ...
+%              ones(1,params.nSteps/2),...
+%              linspace(1,0,(1/4)*params.nSteps)];
+        timeContrast = ones(params.nSteps,1);
         % plot(timeContrast)
             
         % We build a dummy scene here just so we can subsequently calculate
@@ -111,19 +111,19 @@ for colorInd = 2
         % build a series of scenes below.
         stimulusRGBdata = imageHarmonicColor(params); % sceneCreateGabor(params);
         scene = sceneFromFile(stimulusRGBdata, 'rgb', params.meanLuminance, display);
-        % vcAddObject(scene); sceneWindow;
+        vcAddObject(scene); sceneWindow;
         
         %% Initialize the optics and the sensor
               
         coneP = coneCreate; % The cone properties properties
         
         % see caption for Fig. 4 of Horwitz, Hass, Rieke, 2015, J. Neuro.
-        retinalPosDegAz = 5; retinalPosDegEl = -3.5;
-        retinalRadiusDegrees = sqrt(retinalPosDegAz^2+retinalPosDegEl^2);
-        retinalPolarDegrees  = abs(atand(retinalPosDegEl/retinalPosDegAz));
-        retinalPos = [retinalRadiusDegrees retinalPolarDegrees]; whichEye = 'right';
-        sensor = sensorCreate('human', [coneP], [retinalPos], [whichEye]);
-        
+%         retinalPosDegAz = 5; retinalPosDegEl = -3.5;
+%         retinalRadiusDegrees = sqrt(retinalPosDegAz^2+retinalPosDegEl^2);
+%         retinalPolarDegrees  = abs(atand(retinalPosDegEl/retinalPosDegAz));
+%         retinalPos = [retinalRadiusDegrees retinalPolarDegrees]; whichEye = 'right';
+%         sensor = sensorCreate('human', [coneP], [retinalPos], [whichEye]);
+        sensor = sensorCreate('human');
         sensor = sensorSetSizeToFOV(sensor, params.fov, scene, oi);
         sensor = sensorSet(sensor, 'exp time', params.expTime); % 1 ms
         sensor = sensorSet(sensor, 'time interval', params.timeInterval); % 1 ms
@@ -156,7 +156,7 @@ for colorInd = 2
             
             % Update the phase of the Gabor
             params.ph = 2*pi*(t-1)/params.nSteps; % one period over nSteps
-            params.contrast = params.maxContrast(contrastInd)*timeContrast(t);
+            params.contrast = params.contrast*timeContrast(t);
             
             % scene = sceneCreate('harmonic', params);
             % scene = sceneSet(scene, 'h fov', fov);
@@ -171,17 +171,6 @@ for colorInd = 2
             % calibration of the monitor
             scene = sceneAdjustLuminance(scene, 200);
             
-            % Now adjust the stimulus over time
-            %             nSteps = params.nSteps;
-            %             if t <  ((1/4)*nSteps)
-            %                 scene = sceneAdjustLuminance(scene, 200 * (t/(160)) );
-            %                 % elseif (t >= nSteps / 4) && (t <= 3 * nSteps / 4)
-            %             elseif (t >= (1/4) *nSteps) && (t <= (3/4 * nSteps))
-            %                 scene = sceneAdjustLuminance(scene, 200);
-            %             elseif t > (3/4 * nSteps)
-            %                 scene = sceneAdjustLuminance(scene, 200 * (((nSteps) - t)/160) );
-            %             end
-            
             % oi  = oiCreate('wvf human');
             % Compute optical image
             oi = oiCompute(oi, scene);
@@ -191,7 +180,7 @@ for colorInd = 2
             
             if t == 1
                 volts = zeros([sensorGet(sensor, 'size') params.nSteps]);
-                vcAddObject(scene); sceneWindow
+
             end
             
             volts(:,:,t) = sensorGet(sensor, 'volts');
@@ -231,23 +220,24 @@ for colorInd = 2
             xlabel('pooled S cone response'); ylabel('pooled M cone response'); zlabel('pooled L cone response');
             
             % Fit a linear svm classifier between pooled responses at contrast = 0
-            % and contrast = contrastArr(contrastInd):
+            % and contrast = maxContrast(contrastInd):
             
             % If you have the statistics toolbox
             if exist('fitcsvm','file');
                 m1 = fitcsvm([pooledData{1}; pooledData{contrastInd}], [ones(noiseIterations,1); -1*ones(noiseIterations,1)], 'KernelFunction', 'linear');
                 % Calculate cross-validated accuracy based on model:
-                cv = crossval(m1);
-                rocArea(contrastInd) = 1-kfoldLoss(cv)';
+                cv = crossval(m1,'kfold',5);
+                rocArea(contrastInd) = 1-kfoldLoss(cv)'
             else
                 % Use the ISETBIO libsvm 
                 nFoldCrossVal = 5;
                 % NEEDS TO BE CHECKED.   ASK HJ.
-                [acc,w] = svmClassifyAcc([pooledData{1}; pooledData{contrastInd}], ...
+                pd1 = pooledData{1}; pd2 = pooledData{contrastInd};
+                [acc,w] = svmClassifyAcc([pd1; pd2], ...
                     [ones(noiseIterations,1); -1*ones(noiseIterations,1)], ...
                     nFoldCrossVal,'linear');
                 % perfcurve for roc plot
-                rocArea(contrastInd) = 1-acc(2);
+                rocArea(contrastInd) = acc(1)
             end
             
             title(sprintf('Pooled responses in LMS space, p(Correct) = %2.0f', 100*rocArea(contrastInd)));
@@ -258,7 +248,7 @@ for colorInd = 2
     end %colorInd
     
     %% Fit psychometric curve to thresholds as a function of contrast
-    [xData, yData] = prepareCurveData( contrastArr, rocArea);
+    [xData, yData] = prepareCurveData( maxContrast, rocArea);
     
     % Set up fittype and options.
     ft = fittype( '1 - 0.5*exp(-(x/a)^b)', 'independent', 'x', 'dependent', 'y' );
@@ -275,7 +265,7 @@ for colorInd = 2
     % Plot fit with data.
     figure( 'Name', 'untitled fit 1' );
     h = plot( fitresult, xData, yData );
-    hold on; scatter(contrastArr,rocArea,40,'filled');
+    hold on; scatter(maxContrast,rocArea,40,'filled');
     % set(gca,'xscale','log')
     legend( h, 'data', 'fitted curve', 'Location', 'NorthWest' );
     % Label axes
@@ -284,7 +274,7 @@ for colorInd = 2
     grid on
     thresh1 = fitresult.a;
     title(sprintf('Detection, \\alpha = %1.2f',(thresh1)));
-    set(gca,'fontsize',16')
+    set(gca,'fontsize',16)
     axis([0 1 0.5 1]);
     
 
