@@ -4,7 +4,6 @@ function params = paramsGaborColorOpponent()
 % behavior in rhesus monkeys" by Horwitz, Hass, Angueyra, Lindbloom-Brown &
 % Rieke, J. Neuroscience, 2015
 % 
-% 
 % parameters found in Fig. 6 caption
 params.color_val = 3;          % 1 = s_iso, 2 = L-M, 3 = LMS, 4 = L-M
 params.contrast = 0.065;        % set max contrast of gabor
@@ -24,4 +23,4 @@ params.meanLuminance = 100;
 
 % For the sensor
 params.expTime = 0.001;
-params.timeInterval = 0.001;0;
+params.timeInterval = 0.001;

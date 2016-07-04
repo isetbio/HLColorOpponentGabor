@@ -44,14 +44,15 @@
 %
 % JRG/NC/BW ISETBIO Team, Copyright 2015
 
-
-ieInit
-clear all
-ieSessionSet('wait bar', 'off')
+%% Initialize
+ieInit; clear all;
+ieSessionSet('wait bar', 'off');
 wFlag = ieSessionGet('wait bar');
 
-%% Specify parameters for contrast values and noise repititions
+%% Make sure this project's code is on the Matlab path
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..'));
 
+%% Specify parameters for contrast values and noise repititions
 nContrast   = 4;
 maxContrast = linspace(0,1,nContrast);
 
@@ -113,8 +114,7 @@ for colorInd = 2
         scene = sceneFromFile(stimulusRGBdata, 'rgb', params.meanLuminance, display);
         vcAddObject(scene); sceneWindow;
         
-        %% Initialize the optics and the sensor
-              
+        %% Initialize the optics and the sensor      
         coneP = coneCreate; % The cone properties properties
         
         % see caption for Fig. 4 of Horwitz, Hass, Rieke, 2015, J. Neuro.
