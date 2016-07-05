@@ -1,5 +1,7 @@
-function [scene,p] = sceneHarmonicColor(scene,params, wave)
-%% Create a scene of a (windowed) harmonic function with RGB components.
+function [scene,p] = sceneHarmonicColor(scene,params,wave)
+% [scene,p] = sceneHarmonicColor(scene,params,wave)
+%
+% Create a scene of a (windowed) harmonic function with RGB components.
 %
 % Harmonic parameters are: parms.freq, parms.row, parms.col, parms.ang
 % parms.ph, parms.contrast
@@ -15,7 +17,7 @@ scene = sceneSet(scene,'name','harmonic');
 if notDefined('wave')
     scene = initDefaultSpectrum(scene,'hyperspectral');
 else
-    scene = initDefaultSpectrum(scene, 'custom',wave);
+    scene = initDefaultSpectrum(scene,'custom',wave);
 end
 
 nWave = sceneGet(scene,'nwave');
