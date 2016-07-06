@@ -83,7 +83,7 @@ switch parms.color
     case {'siso',1}
         colorOpponent = [0.05 0.10 0.99];
     case{'lmred',2}
-        colorOpponent = [0.86 -0.50 -0.05ellip
+        colorOpponent = [0.86 -0.50 -0.05];
     case{'lmsorange',3}
         colorOpponent = [0.12 -0.19 -0.97];
     case{'lmsmagenta',4}

@@ -7,9 +7,12 @@
 %% Clear
 ieInit; clear; close all;
 
+%% Make sure this project's code is on the Matlab path
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..'));
+
 %% Define parameters of a gabor pattern
 %
-% Parameters in degrees
+% Parameters in degrees.  The field of view is the horizontal dimension.
 fieldOfViewDegs = 4;
 cyclesPerDegree = 2;
 gaussianFWHMDegs = 1.5;
@@ -32,7 +35,7 @@ parms.GaborFlag = gaussianStdImageFraction;
 %
 % We can see it as a grayscale image
 gaborPattern = imageHarmonic(parms);
-vcNewGraphWin; imagesc(gaborPattern), colormap(gray); axis square
+vcNewGraphWin; imagesc(gaborPattern); colormap(gray); axis square
 
 % And plot a slice through the center.
 %
@@ -45,15 +48,22 @@ figure; hold on;
 xDegs = linspace(-fieldOfViewDegs/2,fieldOfViewDegs/2,parms.col);
 plot(xDegs,gaborPattern(parms.row/2,:));
 
+%% Convert the Gabor pattern to a modulation around the mean
+%
+% This is easy, because imageHarmoic generates the Gabor as a modulation
+% around 1.  Subtracting 1 gives us a modulation in the range -1 to 1.
+gaborModulation = gaborPattern-1;
+
 %% Convert Gabor to a color modulation specified in cone space
 %
 % This requires a little colorimetry.
 
 % Specify L, M, S cone contrasts for the modulation
-testConeContrast = [0.05 -0.05 0]';
+testConeContrasts = [0.05 -0.05 0]';
 
 % Specify xyY (Y in cd/m2) coordinates of background (because this is what is often
-% done in papers.
+% done in papers.  This is a slighly bluish background, as was used by
+% Poirson & Wandell (1996).
 backgroundxyY = [0.27 0.30 49.8]';
 
 % Need to load cone fundamentals and XYZ color matching functions to do the
@@ -90,6 +100,114 @@ end
 backgroundConeExcitations = M_XYZToCones*xyYToXYZ(backgroundxyY);
 
 % Convert test cone contrasts to cone excitations
-testConeExcitations = (testConeContrast .* backgroundConeExcitations)./backgroundConeExcitations;
+testConeExcitations = (testConeContrasts .* backgroundConeExcitations);
 
+% Make the color gabor in LMS excitations
+gaborConeExcitationsBg = ones(parms.row,parms.col);
+gaborConeExcitations = zeros(parms.row,parms.col,3);
+for ii = 1:3
+    gaborConeExcitations(:,:,ii) = gaborConeExcitationsBg*backgroundConeExcitations(ii) + ...
+        gaborModulation*testConeExcitations(ii);
+end
+
+% Check that contrasts come out right.  They will be a little
+% less than nominal values becuase it's a Gabor, not a sinusoid.
+coneTypes = {'L' 'M' 'S'};
+for ii = 1:3
+    gaborPlane = gaborConeExcitations(:,:,ii);
+    theMax = max(gaborPlane(:)); theMin = min(gaborPlane(:));
+    actualConeContrasts(ii) = (theMax-theMin)/(theMax+theMin);
+    fprintf('Actual absolute %s cone contrast: %0.3f, nominal: % 0.3f\n', coneTypes{ii}, ...
+        actualConeContrasts(ii),abs(testConeContrasts(ii)));
+end
+
+% And take a look at the LMS image.  This is just a straight rendering of
+% LMS and so won't look the right colors, but we can check that it is
+% qualitatively correct.
+vcNewGraphWin; imagesc(gaborConeExcitations/max(gaborConeExcitations(:))); axis square
+
+%% Produce an isetbio scene
+%
+% This should represent a monitor image that produces the desired LMS
+% excitations.
+
+% We need a display.  We'll just use the description of a CRT that we have
+% handy.  In doing so, we are assuming that the differences between CRT's
+% used in different threshold experiments do not have a substantial effect
+% on the thresholds.  There will be a little effect because differences in
+% channel spectra will lead to differences in the retinal image because of
+% chromatic aberration, but given the general similarity of monitor channel
+% spectra we expect these differences to be small.  We could check this by
+% doing the calculations with different monitor descriptions.
+display = displayCreate('CRT-HP');
+
+% Get display channel spectra.  The S vector displayChannelS is PTB format
+% for specifying wavelength sampling: [startWl deltaWl nWlSamples],
+displayChannelWavelengths = displayGet(display,'wave');
+displayChannelS = WlsToS(displayChannelWavelengths);
+displayChannelSpectra = displayGet(display,'spd');
+
+% Spline XYZ and cones to same wavelength sampling as display
+T_conesForDisplay = SplineCmf(S_cones,T_cones,displayChannelWavelengths);
+T_XYZForDisplay = SplineCmf(S_XYZ,T_XYZ,displayChannelWavelengths);
+
+% Find the matrix that converts between linear channel weights (called
+% "primary" in PTB lingo) and LMS excitations, and its inverse.  Multiplication by
+% the deltaWl is to handle fact that in isetbio radiance is specified in
+% Watts/[m2-sr-nm].
+%
+% Also get matrices for going in and out of XYZ, and compute display max
+% luminance as a sanity check.
+M_PrimaryToConeExcitations = T_conesForDisplay*displayChannelSpectra*displayChannelS(2);
+M_ConeExcitationsToPrimary = inv(M_PrimaryToConeExcitations);
+
+M_PrimaryToXYZ = T_XYZForDisplay*displayChannelSpectra*displayChannelS(2);
+M_XYZToPrimary = inv(M_PrimaryToXYZ);
+displayMaxXYZ = M_PrimaryToXYZ*[1 1 1]';
+fprintf('Max luminace of the display is %0.1f cd/m2\n',displayMaxXYZ(2));
+
+%% Convert the gaborConeExcitations image to RGB
+[gaborConeExcitationsCalFormat,m,n] = ImageToCalFormat(gaborConeExcitations);
+gaborPrimaryCalFormat = M_ConeExcitationsToPrimary*gaborConeExcitationsCalFormat;
+gaborPrimary = CalFormatToImage(gaborPrimaryCalFormat,m,n);
+
+% Check that the image is within the monitor gamut.  If the gabor
+% represents an actual stimulus produced with an actual monitor, things
+% should be OK if both are represented properly in this routine.
+maxPrimary = max(gaborPrimaryCalFormat(:));
+minPrimary = min(gaborPrimaryCalFormat(:));
+fprintf('Maximum linear RGB (primary) value is %0.2f, minimum %0.2f\n',maxPrimary,minPrimary);
+if (maxPrimary > 1 || minPrimary < 0)
+    error('RGB primary image is out of gamut.  You need to do something about this.');
+end
+
+% Gamma correct the primary values, so we can pop them into an isetbio
+% scene in some straightforward manner.
+nLevels = size(displayGet(display,'gamma'),1);
+gaborRGB = round(ieLUTLinear(gaborPrimary,displayGet(display,'inverse gamma')));
+vcNewGraphWin; hold on
+theColors = ['r' 'g' 'b'];
+for ii = 1:3
+    tempPrimary = gaborPrimary(:,:,ii);
+    tempRGB = gaborRGB(:,:,ii);
+    plot(tempPrimary(:),tempRGB(:),['o' theColors(ii)],'MarkerFaceColor',theColors(ii));
+end
+xlim([0 1]);
+ylim([0 nLevels]);
+axis('square');
+xlabel('Linear channel value');
+ylabel('Gamma corrected DAC settings value');
+title('Gamma correction');
+
+% Look at the image.  It is plausible for an L-M grating.  Remember that we
+% are looking at the stimuli on a monitor different from the display file
+% that we loaded, and thus the RGB values will not produce exactly the
+% desired appearance.
+vcNewGraphWin; imagesc(gaborRGB /max(gaborRGB(:))); axis square;
+
+%% Make an isetbio scene
+% This combines the image we build and the display properties.
+gaborScene = sceneFromFile(gaborRGB,'rgb',[],display);
+gaborScene = sceneSet(gaborScene, 'h fov', fieldOfViewDegs);
+vcAddObject(gaborScene); sceneWindow;
 
