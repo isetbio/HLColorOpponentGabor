@@ -211,3 +211,47 @@ gaborScene = sceneFromFile(gaborRGB,'rgb',[],display);
 gaborScene = sceneSet(gaborScene, 'h fov', fieldOfViewDegs);
 vcAddObject(gaborScene); sceneWindow;
 
+%% Create no optics oi
+% Create an optical image with no optics.  There seems to be no direct
+% option to do this, so instead, create a diffraction limited optical image
+% and set the focal length equal to that in the human optics and then set
+% the fnumber to 0.001 to get near perfect optics. Also set the fov of the
+% optical image to the same size as the scene.
+humanOI = oiCreate;
+focalLength = oiGet(humanOI,'focal length');
+
+gaborOI = oiCreate('diffraction');
+gaborOI = oiSet(gaborOI,'focal length',focalLength);
+gaborOI = oiSet(gaborOI,'optics fnumber',1e-3);
+gaborOI = oiSet(gaborOI,'h fov',fieldOfViewDegs);
+gaborOI = oiCompute(gaborOI,gaborScene);
+vcAddAndSelectObject(gaborOI); oiWindow;
+
+%% Create and get noise free sensor using coneMosaic obj
+% Create a coneMosaic object here. When setting the fov, if only one value
+% is specified, it will automatically make a square cone mosaic. There is
+% also an option of whether the cone current should be calculated in the
+% compute function. If set to true, it uses an os object inside the
+% coneMosaic object. The default is the linearOS. Finally, we also pull out
+% the cone pattern to get our min and max LMS absorptions. The guiWindow
+% will hang for a few seconds when opening. The Gabor patch is not very
+% evident in the mean absorptions view but is much clearer in the mean
+% photocurrent view.
+gaborConeMosaic = coneMosaic;
+gaborConeMosaic.setSizeToFOV(fieldOfViewDegs);
+gaborConeMosaic.noiseFlag = false;
+photons = gaborConeMosaic.compute(gaborOI,'currentFlag',false);
+conePattern = gaborConeMosaic.pattern;
+gaborConeMosaic.guiWindow;
+
+%% Get min max for LMS cone absorptions
+% Extract the min and max absorptions in a loop. Since we are
+% extracting only L, M, or S absorptions at each iteration, we get a vector
+% so one call to max/min will suffice. 
+for ii = 2:4
+    maxAbsorption = max(photons(conePattern==ii));
+    minAbsorption = min(photons(conePattern==ii));
+    
+    fprintf('%s cone absorptions\n\tMax: %d \n\tMin: %d\n',coneTypes{ii-1},maxAbsorption,minAbsorption);
+    fprintf('\tContrast: %04.3f\n',(maxAbsorption-minAbsorption)/(maxAbsorption+minAbsorption));
+end
