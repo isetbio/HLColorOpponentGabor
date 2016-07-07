@@ -4,7 +4,8 @@ function data = transformDataWithPCA(data,numPCA,varargin)
 % Projects data along a specified number of principal components. PCA is
 % done on the data matrix and the first numPCA components (ordered by
 % variance explained) will be used to project the data into a lower
-% dimension.
+% dimension. By default, the data will be standardized before the PCA
+% calculation.
 % 
 % Inputs:
 %   data    -  A matrix containing data to project into a lower dimension.
