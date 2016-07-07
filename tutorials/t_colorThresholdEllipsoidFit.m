@@ -57,7 +57,7 @@ thresholdExcitations = PointsOnEllipsoidFind(simulatedQ,testExcitationDirections
 thresholdContrasts =  bsxfun(@times,thresholdExcitations,1./theBgLMS);
 
 % Add some noise to the length of each simulated threshold
-thresholdNoiseFractionSd = 0.05;
+thresholdNoiseFractionSd = 0.02;
 for ii = 1:size(thresholdContrasts,2)
     noisyThresholdContrasts(:,ii) = thresholdContrasts(:,ii)*(1+normrnd(0,thresholdNoiseFractionSd));
 end
