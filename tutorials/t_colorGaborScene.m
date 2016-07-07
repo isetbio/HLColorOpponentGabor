@@ -212,46 +212,63 @@ gaborScene = sceneSet(gaborScene, 'h fov', fieldOfViewDegs);
 vcAddObject(gaborScene); sceneWindow;
 
 %% Create no optics oi
-% Create an optical image with no optics.  There seems to be no direct
-% option to do this, so instead, create a diffraction limited optical image
-% and set the focal length equal to that in the human optics and then set
-% the fnumber to 0.001 to get near perfect optics. Also set the fov of the
-% optical image to the same size as the scene.
-humanOI = oiCreate;
-focalLength = oiGet(humanOI,'focal length');
-
-gaborOI = oiCreate('diffraction');
-gaborOI = oiSet(gaborOI,'focal length',focalLength);
-gaborOI = oiSet(gaborOI,'optics fnumber',1e-3);
+% Create an optical image with no optics.  Here our goal is to verify that
+% the cone contrast we compute from actual absorptions matches what we
+% specified at the start, so that we are confident we've produced the right
+% stimulus scene.  So we don't want to get confused by the optics.
+gaborOI = oiCreate('human');
 gaborOI = oiSet(gaborOI,'h fov',fieldOfViewDegs);
+
+% Turn off optics for current purpose of checking LMS contrast 
+% This involves turning off the off-axis falloff in intensity and
+% replacing the OTF with a unity OTF.
+optics = oiGet(gaborOI,'optics');
+optics = opticsSet(optics,'off axis method','skip');
+optics = opticsSet(optics,'OTF',ones(size(opticsGet(optics,'OTF'))));
+gaborOI= oiSet(gaborOI,'optics',optics);
+
+%% Look at the OI
+% Note how different the color appearance is than the scene.  This is
+% because the OI incorprates the transmittance of the lens.  Down below we
+% will turn that off as a check.
 gaborOI = oiCompute(gaborOI,gaborScene);
 vcAddAndSelectObject(gaborOI); oiWindow;
 
+%% Verify that removing lens transmittance has expected effect
+lens = oiGet(gaborOI,'lens');
+lens.density = 0;
+gaborOINoLens = oiSet(gaborOI,'lens',lens);
+gaborOINoLens = oiCompute(gaborOINoLens,gaborScene);
+vcAddAndSelectObject(gaborOINoLens); oiWindow;
+oiPlot(gaborOINoLens)
+
 %% Create and get noise free sensor using coneMosaic obj
 % Create a coneMosaic object here. When setting the fov, if only one value
-% is specified, it will automatically make a square cone mosaic. There is
-% also an option of whether the cone current should be calculated in the
-% compute function. If set to true, it uses an os object inside the
-% coneMosaic object. The default is the linearOS. Finally, we also pull out
-% the cone pattern to get our min and max LMS absorptions. The guiWindow
-% will hang for a few seconds when opening. The Gabor patch is not very
-% evident in the mean absorptions view but is much clearer in the mean
-% photocurrent view.
+% is specified, it will automatically make a square cone mosaic.  We don't
+% need the whole field of view to check the contrast, which will be
+% determined near the center of the Gabor, and making it smaller speeds
+% things up.
 gaborConeMosaic = coneMosaic;
-gaborConeMosaic.setSizeToFOV(fieldOfViewDegs);
+gaborConeMosaic.setSizeToFOV(fieldOfViewDegs/2);
+
+% There is also an option of whether the cone current should be calculated
+% in the compute function. If set to true, it uses an os object inside the
+% coneMosaic object. The default is the linearOS.  Here we don't need that.
 gaborConeMosaic.noiseFlag = false;
 photons = gaborConeMosaic.compute(gaborOI,'currentFlag',false);
-conePattern = gaborConeMosaic.pattern;
+
+%% Take a look at the mosaic responses
 gaborConeMosaic.guiWindow;
 
 %% Get min max for LMS cone absorptions
 % Extract the min and max absorptions in a loop. Since we are
 % extracting only L, M, or S absorptions at each iteration, we get a vector
-% so one call to max/min will suffice. 
+% so one call to max/min will suffice.
+conePattern = gaborConeMosaic.pattern;
 for ii = 2:4
     maxAbsorption = max(photons(conePattern==ii));
     minAbsorption = min(photons(conePattern==ii));
     
     fprintf('%s cone absorptions\n\tMax: %d \n\tMin: %d\n',coneTypes{ii-1},maxAbsorption,minAbsorption);
-    fprintf('\tContrast: %04.3f\n',(maxAbsorption-minAbsorption)/(maxAbsorption+minAbsorption));
+    fprintf('\tAbsolute contrast: %04.3f\n',(maxAbsorption-minAbsorption)/(maxAbsorption+minAbsorption));
 end
