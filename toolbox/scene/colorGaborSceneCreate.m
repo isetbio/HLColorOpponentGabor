@@ -1,34 +1,40 @@
 function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monitorFile)
-% gaborScene = colorGaborSceneCreate(params,coneContrast,background,monitorFile)
+% gaborScene =
+% colorGaborSceneCreate(params,coneContrast,background,monitorFile)
 % 
 % Creates a colored Gabor IBIO scene. The scene will produce a specified
 % set of L, M, and S contrasts on a specific monitor.
 %
 % Inputs:
-%   params         -   A general parameter struct containing some specifications
-%                      for the Gabor to generate. fieldOfView here
-%                      represents the horizontal fov and has units in
-%                      degrees. row and col have units of pixels. ang and ph 
-%                      have units of radians. See example below. Note that
-%                      all the fields in the example are required.
+%   params         -   A struct that specifies the parameters
+%                      for the Gabor to generate, with the following
+%                      fields:
+%                           fieldOfView - horizontal field of view in degrees.
+%                           cyclesPeDegree - Gabor cpd.
+%                           gaussianFWHMDegs - Full width at half max of Gaussian.
+%                           row - row size in pixels.
+%                           col - col size in pixels.
+%                           ang - angle of sinusoid in radians.
+%                           ph - phase of sinusoid in radians.
+%                       All fields are required.
 %
-%   coneContrast   -   Desired cone contrasts for [L M S] cones.
+%   coneContrast   -   Desired cone contrasts in a column vector for [L M S] cones.
 %
-%   background     -   xyY (Y in cd/m2) coordinates of background.
+%   background     -   Column vector xyY (Y in cd/m2) coordinates of background.
 %
 %   monitorFile    -   A string that specifies the name of the monitor file
 %                      to load. This will be passed into the displayCreate
 %                      function in IBIO.
-%
 % Example:
 %   p.fieldOfViewDegs = 4; p.cyclesPerDegree = 2; p.gaussianFWHMDegs = 1.5;
 %   p.row = 128; p.col = 128; p.contrast = 1; p.ang = 0; p.ph = 0;
 %   coneContrasts = [0.05 -0.05 0]';
 %   backgroundxyY = [0.27 0.30 49.8]';
 %   monitorFile = 'CRT-HP';
-%
 %   gaborScene = colorGaborSceneCreate(p,coneContrasts,backgroundxyY,monitorFile);
 %   vcAddAndSelectObject(gaborScene);sceneWindow;
+%
+% See also imageHarmonic, t_colorGaborScene.
 %
 % 7/7/16  xd  adapted from t_colorGaborScene
 
