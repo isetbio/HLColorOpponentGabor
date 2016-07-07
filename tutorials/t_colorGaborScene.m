@@ -39,7 +39,7 @@ testConeContrasts = [0.05 -0.05 0]';
 backgroundxyY = [0.27 0.30 49.8]';
 
 % File describing the monitor we'll use to create the scene
-montitorFile = 'CRT-HP';
+monitorFile = 'CRT-HP';
 
 %% Make the gabor pattern and have a look
 %
