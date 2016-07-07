@@ -1,7 +1,7 @@
-function [threshold, paramsValues] = singleThresholdExtraction(data, criterion)
-% [threshold, paramValues] = singleThresholdExtraction(data)
+function [threshold,paramsValues] = singleThresholdExtraction(data,stimLevels,criterion)
+% [threshold,paramValues] = singleThresholdExtraction(data)
 % 
-% This function fits a cumulative Weibull to the data variable and returns
+% Fits a cumulative Weibull to the data variable and returns
 % the threshold at the criterion as well as the parameters needed to plot the
 % fitted curve. It is assumed that the data vector contains percentage
 % performance and is ordered in increasing stimulus value (or however you'd
@@ -9,6 +9,15 @@ function [threshold, paramsValues] = singleThresholdExtraction(data, criterion)
 % at least 6 points. If the data cannot be fit, the threshold returned will
 % be NaN and the paramsValues will a zero row vector. It is also assumed
 % that the criterion is given as a percentage.
+%
+% Note that this function requires and makes use of Palamedes Toolbox 1.8
+%
+% Inputs:
+%   data         -  A N-vector of percentages that represent performance on a task.
+%
+%   stimLevels   -  A N-vector representing stimuli levels corresponding to the data.
+%
+%   criterion    -  Percent at which to find a threshold.
 %
 % xd  6/21/16 wrote it
 
@@ -25,7 +34,6 @@ criterion      = criterion/100;
 paramsEstimate = [10 1 0.5 0];
 numTrials      = 100;
 paramsFree     = [1 1 0 0];
-stimLevels     = 1:length(data);
 outOfNum       = repmat(numTrials,1,length(data));
 PF             = @PAL_Weibull;
 
@@ -38,7 +46,7 @@ options.MaxIter     = 500*100;
 %% Fit the data to a curve
 paramsValues = PAL_PFML_Fit(stimLevels(:), data(:), outOfNum(:), ...
     paramsEstimate, paramsFree, PF, 'SearchOptions', options);
-
 threshold = PF(paramsValues, criterion, 'inverse');
+
 end
 
