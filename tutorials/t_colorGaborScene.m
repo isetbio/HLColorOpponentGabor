@@ -30,6 +30,17 @@ parms.ang = 0;
 parms.ph = 0;
 parms.GaborFlag = gaussianStdImageFraction;
 
+% Specify L, M, S cone contrasts for the modulation
+testConeContrasts = [0.05 -0.05 0]';
+
+% Specify xyY (Y in cd/m2) coordinates of background (because this is what is often
+% done in papers.  This is a slighly bluish background, as was used by
+% Poirson & Wandell (1996).
+backgroundxyY = [0.27 0.30 49.8]';
+
+% File describing the monitor we'll use to create the scene
+montitorFile = 'CRT-HP';
+
 %% Make the gabor pattern and have a look
 %
 % We can see it as a grayscale image
@@ -56,15 +67,7 @@ gaborModulation = gaborPattern-1;
 %% Convert Gabor to a color modulation specified in cone space
 %
 % This requires a little colorimetry.
-
-% Specify L, M, S cone contrasts for the modulation
-testConeContrasts = [0.05 -0.05 0]';
-
-% Specify xyY (Y in cd/m2) coordinates of background (because this is what is often
-% done in papers.  This is a slighly bluish background, as was used by
-% Poirson & Wandell (1996).
-backgroundxyY = [0.27 0.30 49.8]';
-
+%
 % Need to load cone fundamentals and XYZ color matching functions to do the
 % needed conversions.  Here we'll use the Stockman-Sharpe 2-degree
 % fundamentals and the proposed CIE corresponding XYZ functions.  These
@@ -138,7 +141,7 @@ vcNewGraphWin; imagesc(gaborConeExcitations/max(gaborConeExcitations(:))); axis 
 % chromatic aberration, but given the general similarity of monitor channel
 % spectra we expect these differences to be small.  We could check this by
 % doing the calculations with different monitor descriptions.
-display = displayCreate('CRT-HP');
+display = displayCreate(monitorFile);
 
 % Get display channel spectra.  The S vector displayChannelS is PTB format
 % for specifying wavelength sampling: [startWl deltaWl nWlSamples],
