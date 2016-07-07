@@ -1,14 +1,13 @@
 % t_colorGaborScene
 %
-% Create a scene with a color gabor patch.
+% Create a scene with a color gabor patch with color directions
+% specified as L, M, and S cone contrasts.  The scene will produce
+% a Gabor with these contrasts on a specified monitor.
 %
 % 7/6/16  dhb  Wrote it.
 
 %% Clear
 ieInit; clear; close all;
-
-%% Make sure this project's code is on the Matlab path
-AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..'));
 
 %% Define parameters of a gabor pattern
 %
@@ -205,7 +204,7 @@ title('Gamma correction');
 % desired appearance.
 vcNewGraphWin; imagesc(gaborRGB /max(gaborRGB(:))); axis square;
 
-%% Make an isetbio scene
+% Finally, make the actual isetbio scene
 % This combines the image we build and the display properties.
 gaborScene = sceneFromFile(gaborRGB,'rgb',[],display);
 gaborScene = sceneSet(gaborScene, 'h fov', fieldOfViewDegs);
@@ -227,7 +226,7 @@ optics = opticsSet(optics,'off axis method','skip');
 optics = opticsSet(optics,'OTF',ones(size(opticsGet(optics,'OTF'))));
 gaborOI= oiSet(gaborOI,'optics',optics);
 
-%% Look at the OI
+% Look at the OI
 % Note how different the color appearance is than the scene.  This is
 % because the OI incorprates the transmittance of the lens.  Down below we
 % will turn that off as a check.
