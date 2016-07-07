@@ -36,7 +36,7 @@
 %% Clear and close
 clear; close all;
 
-%% Turn off an irritating plot warning
+% Turn off an irritating plot warning
 s = warning('off','MATLAB:delaunay:DupPtsDelaunayWarnId');
 
 %% Get the pattern-color model parameters from the tables in the paper

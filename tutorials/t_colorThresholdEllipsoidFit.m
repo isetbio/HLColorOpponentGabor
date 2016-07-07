@@ -102,7 +102,7 @@ axis('square');
 xlabel('L contrast'); ylabel('M contrast'); zlabel('S contrast');
 title('Simulated data and initial fit ellipsoid');
 
-%% Looking at the plot reveals that although the ellipsoid fits the data well,
+%% Looking at the plot reveals that although the ellipsoid probably fits the data well,
 % the data may not fully constrain the ellipsoid, depending on how it is aligned
 % with the color directions sampled in the (simulated) measurments).  There
 % is some run to run variability in this regard, depending on how the
