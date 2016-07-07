@@ -240,7 +240,7 @@ lens.density = 0;
 gaborOINoLens = oiSet(gaborOI,'lens',lens);
 gaborOINoLens = oiCompute(gaborOINoLens,gaborScene);
 vcAddAndSelectObject(gaborOINoLens); oiWindow;
-oiPlot(gaborOINoLens)
+oiPlot(gaborOINoLens);
 
 %% Create and get noise free sensor using coneMosaic obj
 % Create a coneMosaic object here. When setting the fov, if only one value
