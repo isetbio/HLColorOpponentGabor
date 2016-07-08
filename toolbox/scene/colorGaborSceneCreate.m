@@ -1,5 +1,5 @@
-function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monitorFile)
-% gaborScene = colorGaborSceneCreate(params,coneContrast,background,monitorFile)
+function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monitorFile, viewingDistance)
+% gaborScene = colorGaborSceneCreate(params,coneContrast,background, monitorFile, viewingDistance)
 % 
 % Creates a colored Gabor IBIO scene. The scene will produce a specified
 % set of L, M, and S contrasts on a specific monitor.
@@ -19,6 +19,8 @@ function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monit
 %   monitorFile    -   A string that specifies the name of the monitor file
 %                      to load. This will be passed into the displayCreate
 %                      function in IBIO.
+%  viewingdistance -  The viewing distance in meters.
+%
 %
 % Example:
 %   p.fieldOfViewDegs = 4; p.cyclesPerDegree = 2; p.gaussianFWHMDegs = 1.5;
@@ -26,11 +28,12 @@ function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monit
 %   coneContrasts = [0.05 -0.05 0]';
 %   backgroundxyY = [0.27 0.30 49.8]';
 %   monitorFile = 'CRT-HP';
-%
-%   gaborScene = colorGaborSceneCreate(p,coneContrasts,backgroundxyY,monitorFile);
+%   viewingDistance = 1.82;
+%   gaborScene = colorGaborSceneCreate(p,coneContrasts,backgroundxyY,monitorFile, viewingDistance);
 %   vcAddAndSelectObject(gaborScene);sceneWindow;
 %
 % 7/7/16  xd  adapted from t_colorGaborScene
+% 7/7/16 npc  added viewing distance param
 
 %% Parse inputs
 p = inputParser;
@@ -38,7 +41,8 @@ p.addRequired('params',@validateParams);
 p.addRequired('coneContrast',@isnumeric);
 p.addRequired('background',@isnumeric);
 p.addRequired('monitorFile',@isstr);
-p.parse(params,coneContrast,background,monitorFile);
+p.addRequired('viewingDistance',@isnumeric);
+p.parse(params,coneContrast,background,monitorFile,viewingDistance);
 
 % We also want to make sure that the contrast and background vectors are
 % both column vectors.
@@ -132,6 +136,9 @@ end
 % spectra we expect these differences to be small.  We could check this by
 % doing the calculations with different monitor descriptions.
 display = displayCreate(monitorFile);
+
+% Set the viewing distance
+display = displaySet(display, 'viewingdistance', viewingDistance);
 
 % Get display channel spectra.  The S vector displayChannelS is PTB format
 % for specifying wavelength sampling: [startWl deltaWl nWlSamples],
