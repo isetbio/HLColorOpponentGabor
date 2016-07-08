@@ -1,15 +1,18 @@
-%% t_coneMosaicConeCurrent
+%% t_coneGaborConeCurrentEyeMovementsMovie
 %
-%  The cone current object does not support movie stimuli as of now,
-%  requiring us to manually compute the photocurrent signals. There is code
-%  however that will generate a short eye movement movie for us, allowing
-%  us to generate cone current signals automatically via coneMosaic.compute
-%  or do the calculations manually. This tutorial will go over the three
-%  cases mentioned above.
+%  Show how to generate a movie with the cone absoprtions and photocurrent
+%  to a scene, with fixational eye movements.  Also illustrates how to take
+%  the mean response movie and generate multiple noisy draws.  This then is
+%  the heart of what we need to train up a classifier.
 %
-%  7/8/16  xd  wrote it
+%  7/8/16  xd  Wrote it
+%          ncp More.
 
-ieInit;
+%% Initialize
+ieInit; clear; close all;
+
+% Add project toolbox to Matlab path
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox')); 
 
 %% Define parameters of a gabor pattern
 %
@@ -17,49 +20,35 @@ ieInit;
 gaborParams.fieldOfViewDegs = 4;
 gaborParams.cyclesPerDegree = 2;
 gaborParams.gaussianFWHMDegs = 1.5;
-
-% Convert to image based parameterss for call into pattern generating routine.
-cyclesPerImage = gaborParams.fieldOfViewDegs*gaborParams.cyclesPerDegree;
-gaussianStdDegs = FWHMToStd(1.5);
-gaussianStdImageFraction = gaussianStdDegs/gaborParams.fieldOfViewDegs;
-
-% Parameters for a full contrast vertical gabor centered on the image
 gaborParams.row = 128;
 gaborParams.col = 128;
-gaborParams.freq = cyclesPerImage;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.GaborFlag = gaussianStdImageFraction;
+gaborParams.testConeContrasts = [0.05 -0.05 0]';
+gaborParams.backgroundxyY = [0.27 0.30 49.8]';
+gaborParams.monitorFile = 'CRT-HP';
+gaborParams.viewingDistance = 0.75;
 
 % Temporal stimulus parameters
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
 temporalParams.samplingIntervalInSeconds = 0.010;
 
-% It's convenient to define to define the sample at t = 0 to correspond to
-% the maximum stimulus, and to define evenly spaced temporal samples on
-% before and after 0.  The method below does this, and extends the stimulus
-% duration if necessary to make the sampling come out as nice integers.
-nPositiveTimeSamples = ceil(0.5*temporalParams.stimulusDurationInSeconds/temporalParams.samplingIntervalInSeconds);
-sampleTimes = linspace(-nPositiveTimeSamples*temporalParams.samplingIntervalInSeconds, ...
-    nPositiveTimeSamples*temporalParams.samplingIntervalInSeconds, ...
-    2*nPositiveTimeSamples+1);
-nSampleTimes = length(sampleTimes);
-gaussianTemporalWindow = exp(-(sampleTimes.^2/temporalParams.windowTauInSeconds.^2));
+% Optical image parameters
+oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
+oiParams.offAxis = false;
+oiParams.blur = false;
+oiParams.lens = true;
 
-% Specify L, M, S cone contrasts for what we define as a 100% contrast
-% modulation.
-testConeContrasts = [0.05 -0.05 0]';
+% Cone mosaic parameters
+mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs/2;
+mosaicParams.maculur = true;
+mosaicParams.LMSRatio = [1/3 1/3 1/3];
+mosaciParams.osModel = 'Linear';
 
-% Specify xyY (Y in cd/m2) coordinates of background (because this is what is often
-% done in papers.  This is a slighly bluish background, as was used by
-% Poirson & Wandell (1996).
-backgroundxyY = [0.27 0.30 49.8]';
+%****************************************
 
-% File describing the monitor we'll use to create the scene
-monitorFile = 'CRT-HP';
-viewingDistance = 0.75;
 
 %% Create a cone mosaic
 %

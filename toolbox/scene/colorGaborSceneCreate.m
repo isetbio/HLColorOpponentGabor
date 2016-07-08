@@ -1,41 +1,36 @@
-function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monitorFile, viewingDistance)
-% gaborScene = colorGaborSceneCreate(params,coneContrast,background, monitorFile, viewingDistance)
+function gaborScene = colorGaborSceneCreate(gaborParams)
+% gaborScene = colorGaborSceneCreate(gaborParams,coneContrast,background, monitorFile, viewingDistance)
 % 
 % Creates a colored Gabor IBIO scene. The scene will produce a specified
 % set of L, M, and S contrasts on a specific monitor.
 %
 % Inputs:
-%   params         -   A struct that specifies the parameters
+%   gaborParams    -   A struct that specifies the parameters
 %                      for the Gabor to generate, with the following
 %                      fields:
-%                           fieldOfView - horizontal field of view in degrees.
-%                           cyclesPeDegree - Gabor cpd.
+%                           fieldOfViewDegs - horizontal field of view in degrees.
+%                           cyclesPerDegree - Gabor cpd.
 %                           gaussianFWHMDegs - Full width at half max of Gaussian.
 %                           row - row size in pixels.
 %                           col - col size in pixels.
 %                           ang - angle of sinusoid in radians.
 %                           ph - phase of sinusoid in radians.
-%                       All fields are required.
-%
-%   coneContrast   -   Desired cone contrasts for [L M S] cones.
-%
-%   background     -   Column vector xyY (Y in cd/m2) coordinates of background.
-%
-%   monitorFile    -   A string that specifies the name of the monitor file
-%                      to load. This will be passed into the displayCreate
-%                      function in IBIO.
-%
-%  viewingdistance -  The viewing distance in meters.
-%
+%                           coneContrast - Desired cone contrasts for [L M S] cones.
+%                           backgroundxyY - Column vector xyY (Y in cd/m2) coordinates of background.
+%                           monitorFile - A string that specifies the name of the monitor file
+%                                         to load. This will be passed into the displayCreate
+%                                         function in IBIO.
+%                           viewingdistance - The viewing distance in meters.
+%                                          All fields are required.
 %
 % Example:
 %   p.fieldOfViewDegs = 4; p.cyclesPerDegree = 2; p.gaussianFWHMDegs = 1.5;
 %   p.row = 128; p.col = 128; p.contrast = 1; p.ang = 0; p.ph = 0;
-%   coneContrasts = [0.05 -0.05 0]';
-%   backgroundxyY = [0.27 0.30 49.8]';
-%   monitorFile = 'CRT-HP';
-%   viewingDistance = 1.82;
-%   gaborScene = colorGaborSceneCreate(p,coneContrasts,backgroundxyY,monitorFile, viewingDistance);
+%   p.coneContrasts = [0.05 -0.05 0]';
+%   p.backgroundxyY = [0.27 0.30 49.8]';
+%   p.monitorFile = 'CRT-HP';
+%   p.viewingDistance = 1.82;
+%   gaborScene = colorGaborSceneCreate(p);
 %   vcAddAndSelectObject(gaborScene);sceneWindow;
 %
 % See also imageHarmonic, t_colorGaborScene.
@@ -46,35 +41,31 @@ function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monit
 %% Parse inputs
 p = inputParser;
 p.addRequired('params',@validateParams);
-p.addRequired('coneContrast',@isnumeric);
-p.addRequired('background',@isnumeric);
-p.addRequired('monitorFile',@isstr);
-p.addRequired('viewingDistance',@isnumeric);
-p.parse(params,coneContrast,background,monitorFile,viewingDistance);
+p.parse(gaborParams);
 
 % We also want to make sure that the contrast and background vectors are
 % both column vectors.
-coneContrast = coneContrast(:);
-background = background(:);
+coneContrast = gaborParams.coneContrasts(:);
+backgroundxyY = gaborParams.backgroundxyY(:);
 
 %% Define parameters of a gabor pattern
 %
 % Extract this field since it's used throughout the function.
-fieldOfViewDegs = params.fieldOfViewDegs;
+fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 
 % Convert to image based parameterss for call into pattern generating routine.
-cyclesPerImage = fieldOfViewDegs*params.cyclesPerDegree;
-gaussianStdDegs = FWHMToStd(params.gaussianFWHMDegs);
+cyclesPerImage = fieldOfViewDegs*gaborParams.cyclesPerDegree;
+gaussianStdDegs = FWHMToStd(gaborParams.gaussianFWHMDegs);
 gaussianStdImageFraction = gaussianStdDegs/fieldOfViewDegs;
 
 % Parameters for a full contrast vertical gabor centered on the image
-params.freq = cyclesPerImage;
-params.GaborFlag = gaussianStdImageFraction;
+gaborParams.freq = cyclesPerImage;
+gaborParams.GaborFlag = gaussianStdImageFraction;
 
 %% Make the gabor pattern and have a look
 %
 % We can see it as a grayscale image
-gaborPattern = imageHarmonic(params);
+gaborPattern = imageHarmonic(gaborParams);
 
 %% Convert the Gabor pattern to a modulation around the mean
 %
@@ -117,14 +108,14 @@ if (max(abs(T_conesCheck(:)-T_cones(:))) > 1e-3)
 end
 
 % Convert background to cone excitations
-backgroundConeExcitations = M_XYZToCones*xyYToXYZ(background);
+backgroundConeExcitations = M_XYZToCones*xyYToXYZ(backgroundxyY);
 
 % Convert test cone contrasts to cone excitations
 testConeExcitations = (coneContrast .* backgroundConeExcitations);
 
 % Make the color gabor in LMS excitations
-gaborConeExcitationsBg = ones(params.row,params.col);
-gaborConeExcitations = zeros(params.row,params.col,3);
+gaborConeExcitationsBg = ones(gaborParams.row,gaborParams.col);
+gaborConeExcitations = zeros(gaborParams.row,gaborParams.col,3);
 for ii = 1:3
     gaborConeExcitations(:,:,ii) = gaborConeExcitationsBg*backgroundConeExcitations(ii) + ...
         gaborModulation*testConeExcitations(ii);
@@ -143,10 +134,10 @@ end
 % chromatic aberration, but given the general similarity of monitor channel
 % spectra we expect these differences to be small.  We could check this by
 % doing the calculations with different monitor descriptions.
-display = displayCreate(monitorFile);
+display = displayCreate(gaborParams.monitorFile);
 
 % Set the viewing distance
-display = displaySet(display, 'viewingdistance', viewingDistance);
+display = displaySet(display, 'viewingdistance', gaborParams.viewingDistance);
 
 % Get display channel spectra.  The S vector displayChannelS is PTB format
 % for specifying wavelength sampling: [startWl deltaWl nWlSamples],

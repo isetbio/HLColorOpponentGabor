@@ -1,4 +1,5 @@
-function stimulusCRTSequence = colorGaborCRTStimulusCreate
+function sceneSequence = colorGaborSceneSequenceCreate(gaborParams,temporalParams)
+
     
     p.fieldOfViewDegs = 4; p.cyclesPerDegree = 2; 
     p.gaussianFWHMDegs = 1.5;
@@ -36,7 +37,7 @@ function stimulusCRTSequence = colorGaborCRTStimulusCreate
         frameIndex = frameIndex+1;
         rasterActivation = cat(2, rasterActivation, phosphorFunction.activation);
         rampGain = exp(-((frameTimeInSeconds-to)/rampTauInSeconds).^2);
-        stimulusCRTSequence(frameIndex) = struct(...
+        sceneSequence(frameIndex) = struct(...
             'frameScene', colorGaborSceneCreate(p, coneContrasts*rampGain, backgroundxyY, monitorFile, viewingDistanceInMeters),...
             'leakageScene', leakageScene, ...
             'timeInSeconds', frameTimeInSeconds, ...
@@ -44,7 +45,7 @@ function stimulusCRTSequence = colorGaborCRTStimulusCreate
             'phosphorFunction', phosphorFunction);
     end
     
-    visualizeStimulus(stimulusCRTSequence);
+    visualizeStimulus(sceneSequence);
 end
 
 function visualizeStimulus(stimulusCRTSequence)

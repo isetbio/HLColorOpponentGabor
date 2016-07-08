@@ -4,6 +4,11 @@
 % specified as L, M, and S cone contrasts.  The scene will produce
 % a Gabor with these contrasts on a specified monitor.
 %
+% The code illustrated here is encapsulated into function
+% colorGaborSceneCreate.
+%
+% See also colorGaborSceneCreate.
+%
 % 7/6/16  dhb  Wrote it.
 
 %% Clear
@@ -11,40 +16,32 @@ ieInit; clear; close all;
 
 %% Define parameters of a gabor pattern
 %
-% Parameters in degrees.  The field of view is the horizontal dimension.
-fieldOfViewDegs = 4;
-cyclesPerDegree = 2;
-gaussianFWHMDegs = 1.5;
+% full contrast vertical gabor centered on the image.
+% The field of view is the horizontal dimension.
+gaborParams.fieldOfViewDegs = 4;
+gaborParams.cyclesPerDegree = 2;
+gaborParams.gaussianFWHMDegs = 1.5;
+gaborParams.row = 128;
+gaborParams.col = 128;
+gaborParams.contrast = 1;
+gaborParams.ang = 0;
+gaborParams.ph = 0;
+gaborParams.testConeContrasts = [0.05 -0.05 0]';
+gaborParams.backgroundxyY = [0.27 0.30 49.8]';
+gaborParams.monitorFile = 'CRT-HP';
+gaborParams.viewingDistance = 0.75;
 
-% Convert to image based parameterss for call into pattern generating routine.
-cyclesPerImage = fieldOfViewDegs*cyclesPerDegree;
-gaussianStdDegs = FWHMToStd(1.5);
-gaussianStdImageFraction = gaussianStdDegs/fieldOfViewDegs;
-
-% Parameters for a full contrast vertical gabor centered on the image
-parms.row = 128;
-parms.col = 128;
-parms.freq = cyclesPerImage;
-parms.contrast = 1;
-parms.ang = 0;
-parms.ph = 0;
-parms.GaborFlag = gaussianStdImageFraction;
-
-% Specify L, M, S cone contrasts for the modulation
-testConeContrasts = [0.05 -0.05 0]';
-
-% Specify xyY (Y in cd/m2) coordinates of background (because this is what is often
-% done in papers.  This is a slighly bluish background, as was used by
-% Poirson & Wandell (1996).
-backgroundxyY = [0.27 0.30 49.8]';
-
-% File describing the monitor we'll use to create the scene
-monitorFile = 'CRT-HP';
+% Computed parameters
+cyclesPerImage = gaborParams.fieldOfViewDegs*gaborParams.cyclesPerDegree;
+gaussianStdDegs = FWHMToStd(gaborParams.gaussianFWHMDegs);
+gaussianStdImageFraction = gaussianStdDegs/gaborParams.fieldOfViewDegs;
+gaborParams.freq = cyclesPerImage;
+gaborParams.GaborFlag = gaussianStdImageFraction;
 
 %% Make the gabor pattern and have a look
 %
 % We can see it as a grayscale image
-gaborPattern = imageHarmonic(parms);
+gaborPattern = imageHarmonic(gaborParams);
 vcNewGraphWin; imagesc(gaborPattern); colormap(gray); axis square
 
 % And plot a slice through the center.
@@ -55,8 +52,8 @@ vcNewGraphWin; imagesc(gaborPattern); colormap(gray); axis square
 % degrees, and if you make the Gaussian window wide you can count cycles
 % and make sure they come out right as well.
 figure; hold on;
-xDegs = linspace(-fieldOfViewDegs/2,fieldOfViewDegs/2,parms.col);
-plot(xDegs,gaborPattern(parms.row/2,:));
+xDegs = linspace(-gaborParams.fieldOfViewDegs/2,gaborParams.fieldOfViewDegs/2,gaborParams.col);
+plot(xDegs,gaborPattern(gaborParams.row/2,:));
 
 %% Convert the Gabor pattern to a modulation around the mean
 %
@@ -99,14 +96,14 @@ if (max(abs(T_conesCheck(:)-T_cones(:))) > 1e-3)
 end
 
 % Convert background to cone excitations
-backgroundConeExcitations = M_XYZToCones*xyYToXYZ(backgroundxyY);
+backgroundConeExcitations = M_XYZToCones*xyYToXYZ(gaborParams.backgroundxyY);
 
 % Convert test cone contrasts to cone excitations
-testConeExcitations = (testConeContrasts .* backgroundConeExcitations);
+testConeExcitations = (gaborParams.testConeContrasts .* backgroundConeExcitations);
 
 % Make the color gabor in LMS excitations
-gaborConeExcitationsBg = ones(parms.row,parms.col);
-gaborConeExcitations = zeros(parms.row,parms.col,3);
+gaborConeExcitationsBg = ones(gaborParams.row,gaborParams.col);
+gaborConeExcitations = zeros(gaborParams.row,gaborParams.col,3);
 for ii = 1:3
     gaborConeExcitations(:,:,ii) = gaborConeExcitationsBg*backgroundConeExcitations(ii) + ...
         gaborModulation*testConeExcitations(ii);
@@ -120,7 +117,7 @@ for ii = 1:3
     theMax = max(gaborPlane(:)); theMin = min(gaborPlane(:));
     actualConeContrasts(ii) = (theMax-theMin)/(theMax+theMin);
     fprintf('Actual absolute %s cone contrast: %0.3f, nominal: % 0.3f\n', coneTypes{ii}, ...
-        actualConeContrasts(ii),abs(testConeContrasts(ii)));
+        actualConeContrasts(ii),abs(gaborParams.testConeContrasts(ii)));
 end
 
 % And take a look at the LMS image.  This is just a straight rendering of
@@ -141,7 +138,7 @@ vcNewGraphWin; imagesc(gaborConeExcitations/max(gaborConeExcitations(:))); axis 
 % chromatic aberration, but given the general similarity of monitor channel
 % spectra we expect these differences to be small.  We could check this by
 % doing the calculations with different monitor descriptions.
-display = displayCreate(monitorFile);
+display = displayCreate(gaborParams.monitorFile);
 
 % Get display channel spectra.  The S vector displayChannelS is PTB format
 % for specifying wavelength sampling: [startWl deltaWl nWlSamples],
@@ -210,7 +207,7 @@ vcNewGraphWin; h = imagesc(gaborRGB /max(gaborRGB(:))); axis square;
 % Finally, make the actual isetbio scene
 % This combines the image we build and the display properties.
 gaborScene = sceneFromFile(gaborRGB,'rgb',[],display);
-gaborScene = sceneSet(gaborScene, 'h fov', fieldOfViewDegs);
+gaborScene = sceneSet(gaborScene, 'h fov', gaborParams.fieldOfViewDegs);
 vcAddObject(gaborScene); sceneWindow;
 
 %% Create no optics oi
@@ -219,7 +216,7 @@ vcAddObject(gaborScene); sceneWindow;
 % specified at the start, so that we are confident we've produced the right
 % stimulus scene.  So we don't want to get confused by the optics.
 gaborOI = oiCreate('human');
-gaborOI = oiSet(gaborOI,'h fov',fieldOfViewDegs);
+gaborOI = oiSet(gaborOI,'h fov',gaborParams.fieldOfViewDegs);
 
 % Turn off optics for current purpose of checking LMS contrast 
 % This involves turning off the off-axis falloff in intensity and
@@ -250,7 +247,7 @@ vcAddAndSelectObject(gaborOINoLens); oiWindow;
 % determined near the center of the Gabor, and making it smaller speeds
 % things up.
 gaborConeMosaic = coneMosaic;
-gaborConeMosaic.setSizeToFOV(fieldOfViewDegs/2);
+gaborConeMosaic.setSizeToFOV(gaborParams.fieldOfViewDegs/2);
 
 % There is also an option of whether the cone current should be calculated
 % in the compute function. If set to true, it uses an os object inside the
