@@ -92,7 +92,7 @@ gaborOI = oiCompute(oiCreate('human'),gaborScene);
 % true. Note that when computing the cone current this way, the photon
 % noise flag is held constant throughout the calculation. Therefore, if it
 % is set to false, the current computed will also NOT contain photon noise.
-[photons,coneCurrent] = theMosaic.compute(gaborOI,'currentFlag',true);
+[isomerizations,coneCurrent] = theMosaic.compute(gaborOI,'currentFlag',true);
 
 %% Manually compute cone current
 %
@@ -132,18 +132,18 @@ LMS = largeMosaic.computeSingleFrame(gaborOI,'FullLMS',true);
 % below can be iterated for as many times as desired.
 for ii = 1:1
     theMosaic.emGenSequence(nSampleTimes);
-    photons = theMosaic.applyEMPath(LMS,'padRows',rowPadding,'padCols',colPadding);
+    isomerizations = theMosaic.applyEMPath(LMS,'padRows',rowPadding,'padCols',colPadding);
     
     % We'll now make use of the static function coneMosaic.photonNoise to add
     % photon noise to our absorptions.
-    photons = coneMosaic.photonNoise(photons);
+    isomerizations = coneMosaic.photonNoise(isomerizations);
     
     % There currently does not exist a function to compute cone current
     % directly from the coneMosaic and absorptions data. We can however perform
     % this calculation by accessing the outer segment object inside the
     % coneMosaic. Keep in mind that the cone current calculation takes in
     % absorption RATE and not absolute number of absorptions.
-    photonRate = photons/theMosaic.sampleTime;
+    photonRate = isomerizations/theMosaic.sampleTime;
     coneCurrent = theMosaic.os.compute(photonRate,theMosaic.pattern);
 end
 
@@ -163,18 +163,18 @@ tempMosaic.integrationTime = temporalParams.samplingIntervalInSeconds;
 tempMosaic.emPositions = [0 0];
 tempMosaic.noiseFlag = false;
 
-photons = zeros([tempMosaic.rows tempMosaic.cols nSampleTimes]);
+isomerizations = zeros([tempMosaic.rows tempMosaic.cols nSampleTimes]);
 for ii = 1:nSampleTimes
     currentContrast = testConeContrasts*gaussianTemporalWindow(ii);
     tempScene = colorGaborSceneCreate(gaborParams,testConeContrasts,backgroundxyY,monitorFile,viewingDistance);
     tempOI = oiCompute(oiCreate('human'),tempScene);
-    photons(:,:,ii) = tempMosaic.compute(tempOI,'currentFlag',false);
+    isomerizations(:,:,ii) = tempMosaic.compute(tempOI,'currentFlag',false);
 end
 
 % We can add photon noise through the static function in the coneMosaic
 % object. Then we convert to photon rate as before and use our original
 % coneMosaic item to compute the cone current.
-photons = coneMosaic.photonNoise(photons);
-photonRate = photons/temporalParams.samplingIntervalInSeconds;
+isomerizations = coneMosaic.photonNoise(isomerizations);
+photonRate = isomerizations/temporalParams.samplingIntervalInSeconds;
 
 coneCurrent = theMosaic.os.compute(photonRate,theMosaic.pattern);

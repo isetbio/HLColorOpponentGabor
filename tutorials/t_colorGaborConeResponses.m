@@ -78,6 +78,7 @@ oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 oiParams.offAxis = false;
 oiParams.blur = false;
 oiParams.lens = true;
+theOI = colorDetectOpticalImageConstruct(oiParams);
 
 %% Create the coneMosaic object we'll use to compute cone respones
 %
