@@ -61,7 +61,7 @@ function visualizeStimulus(stimulusCRTSequence)
         totalEnergy(:,:, iFrame) = squeeze(sum(framePhotons,3));
     end
     maxEnergy = max(totalEnergy(:));
-    minEnergy = 0; % min(min(sum(leakagePhotons,3)));
+    minEnergy = min(min(sum(leakagePhotons,3)));
     hFig = figure(1); clf; 
     set(hFig, 'Position', [10 10 1520 960], 'Color', [1 1 1]);
     
@@ -96,9 +96,10 @@ function visualizeStimulus(stimulusCRTSequence)
 
         for rasterBin = 1:numel(phosphorFunction.activation)
             subplot('Position', [0.51 0.02 0.49 0.49]);
-            frameTotalPhotons = framePhotons * phosphorFunction.activation(rasterBin) + leakagePhotons;
-            frameEnergy = sum(frameTotalPhotons,3);
-            imagesc(frameEnergy);
+            framePhotons = sceneGet(stimulusCRTSequence(iFrame).frameScene, 'photons');
+            rasterTotalPhotons = framePhotons * phosphorFunction.activation(rasterBin) + leakagePhotons;
+            rasterEnergy = sum(rasterTotalPhotons,3);
+            imagesc(rasterEnergy);
             set(gca, 'XTick', [], 'YTick', []);
             axis 'image'
             set(gca, 'CLim', [minEnergy maxEnergy]);
