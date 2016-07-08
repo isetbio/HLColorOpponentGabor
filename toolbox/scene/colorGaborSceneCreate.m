@@ -24,6 +24,7 @@ function gaborScene = colorGaborSceneCreate(params,coneContrast,background,monit
 %   monitorFile    -   A string that specifies the name of the monitor file
 %                      to load. This will be passed into the displayCreate
 %                      function in IBIO.
+%
 %  viewingdistance -  The viewing distance in meters.
 %
 %
