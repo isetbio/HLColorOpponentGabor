@@ -17,3 +17,16 @@ sampleTimes = linspace(-nPositiveTimeSamples*temporalParams.samplingIntervalInSe
     nPositiveTimeSamples*temporalParams.samplingIntervalInSeconds, ...
     2*nPositiveTimeSamples+1);
 gaussianTemporalWindow = exp(-(sampleTimes.^2/temporalParams.windowTauInSeconds.^2));
+
+
+if (isfield(temporalParams, 'crtRefreshRate'))
+    % Add CRT raster effect
+    phosphorFunction = crtPhosphorActivationFunction(temporalParams.crtRefreshRate);
+    rasterSamples = numel(phosphorFunction.timeInSeconds);
+    raster = zeros(1,(numel(gaussianTemporalWindow))*rasterSamples);
+    raster(1,1:rasterSamples:end) = gaussianTemporalWindow;
+    raster = conv(raster, phosphorFunction.activation, 'same');
+    gaussianTemporalWindow = raster;
+    sampleTimes = linspace(sampleTimes(1), sampleTimes(end), numel(gaussianTemporalWindow));
+end
+

@@ -50,8 +50,8 @@ mosaicParams.osModel = 'Linear';
 
 %****************************************
 
-[stimulusSampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams);
-nSampleTimes = length(stimulusSampleTimes)
+[sampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams);
+nSampleTimes = length(sampleTimes)
 
 
 %% Create a cone mosaic
