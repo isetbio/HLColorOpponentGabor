@@ -1,4 +1,4 @@
-function colorGaborCRTStimulusCreate
+function stimulusCRTSequence = colorGaborCRTStimulusCreate
     
     p.fieldOfViewDegs = 4; p.cyclesPerDegree = 2; 
     p.gaussianFWHMDegs = 1.5;
@@ -21,7 +21,7 @@ function colorGaborCRTStimulusCreate
     phosphorFunction = generatePhosphorActivationFunction(refreshRate);
          
     % Stimulus temporal ramping params
-    rampTauInSeconds = 0.165;  stimulusDurationInSeconds = 5.5*rampTauInSeconds;
+    rampTauInSeconds = 0.165;  stimulusDurationInSeconds = 2*rampTauInSeconds;
     
     % Generate frame scenes
     dt = phosphorFunction.timeInSeconds(2)-phosphorFunction.timeInSeconds(1);
@@ -36,23 +36,23 @@ function colorGaborCRTStimulusCreate
         frameIndex = frameIndex+1;
         rasterActivation = cat(2, rasterActivation, phosphorFunction.activation);
         rampGain = exp(-((frameTimeInSeconds-to)/rampTauInSeconds).^2);
-        frameSequence(frameIndex) = struct(...
-            'scene', colorGaborSceneCreate(p, coneContrasts*rampGain, backgroundxyY, monitorFile, viewingDistanceInMeters),...
+        stimulusCRTSequence(frameIndex) = struct(...
+            'frameScene', colorGaborSceneCreate(p, coneContrasts*rampGain, backgroundxyY, monitorFile, viewingDistanceInMeters),...
             'leakageScene', leakageScene, ...
             'timeInSeconds', frameTimeInSeconds, ...
             'rampGain', rampGain, ...
             'phosphorFunction', phosphorFunction);
     end
     
-    visualizeStimulus(frameSequence);
+    visualizeStimulus(stimulusCRTSequence);
 end
 
-function visualizeStimulus(frameSequence)
-    framesNum = numel(frameSequence);
-    leakagePhotons = sceneGet(frameSequence(1).leakageScene, 'photons');
+function visualizeStimulus(stimulusCRTSequence)
+    framesNum = numel(stimulusCRTSequence);
+    leakagePhotons = sceneGet(stimulusCRTSequence(1).leakageScene, 'photons');
     
     for iFrame = 1:framesNum
-        framePhotons = sceneGet(frameSequence(iFrame).scene, 'photons');
+        framePhotons = sceneGet(stimulusCRTSequence(iFrame).frameScene, 'photons');
         framePhotons = framePhotons + leakagePhotons;
         if (iFrame == 1)
             totalEnergy = zeros(size(framePhotons,1), size(framePhotons,2), framesNum);
@@ -60,10 +60,8 @@ function visualizeStimulus(frameSequence)
         % sum photons over all waveleghts
         totalEnergy(:,:, iFrame) = squeeze(sum(framePhotons,3));
     end
-    
     maxEnergy = max(totalEnergy(:));
-    minEnergy = min(totalEnergy(:));
-    
+    minEnergy = 0; % min(min(sum(leakagePhotons,3)));
     hFig = figure(1); clf; 
     set(hFig, 'Position', [10 10 1520 960], 'Color', [1 1 1]);
     
@@ -74,15 +72,17 @@ function visualizeStimulus(frameSequence)
     writerObj.Quality = 100;
     writerObj.open();
     
-    rasterTrace = []; rampTrace = []; rampTime = [];
-    totalTimeInSeconds = frameSequence(framesNum).timeInSeconds(end);
+    rasterTrace = []; rampTrace = [];
+    totalTimeInSeconds = stimulusCRTSequence(framesNum).timeInSeconds(end);
     
     for iFrame = 1:framesNum
-        phosphorFunction = frameSequence(iFrame).phosphorFunction;
+        phosphorFunction = stimulusCRTSequence(iFrame).phosphorFunction;
             
         subplot('Position', [0.01 0.02 0.49 0.49]);
-        energyFrame = squeeze(totalEnergy(:,:,iFrame));
-        imagesc(energyFrame);
+        framePhotons = sceneGet(stimulusCRTSequence(iFrame).frameScene, 'photons');
+        frameTotalPhotons = framePhotons + leakagePhotons;
+        frameEnergy = sum(frameTotalPhotons,3);
+        imagesc(frameEnergy);
         set(gca, 'XTick', [], 'YTick', []);
         axis 'image'
         set(gca, 'CLim', [minEnergy maxEnergy]);
@@ -94,10 +94,11 @@ function visualizeStimulus(frameSequence)
         hCbar.Color = [0.2 0.2 0.2];
         title(sprintf('CRT photon emission map (frame: %d)', iFrame), 'FontSize', 14);
 
-        for rasterBin = 1:numel(phosphorFunction.timeInSeconds)
+        for rasterBin = 1:numel(phosphorFunction.activation)
             subplot('Position', [0.51 0.02 0.49 0.49]);
-            rasterFrame = energyFrame * phosphorFunction.activation(rasterBin);
-            imagesc(rasterFrame);
+            frameTotalPhotons = framePhotons * phosphorFunction.activation(rasterBin) + leakagePhotons;
+            frameEnergy = sum(frameTotalPhotons,3);
+            imagesc(frameEnergy);
             set(gca, 'XTick', [], 'YTick', []);
             axis 'image'
             set(gca, 'CLim', [minEnergy maxEnergy]);
@@ -107,11 +108,11 @@ function visualizeStimulus(frameSequence)
             hCbar.FontSize = 16; 
             hCbar.FontName = 'Menlo'; 
             hCbar.Color = [0.2 0.2 0.2];
-            title(sprintf('CRT raster photon emission map (t: %2.2fms)', 1000*(frameSequence(iFrame).timeInSeconds+phosphorFunction.timeInSeconds(rasterBin))), 'FontSize', 14);
+            title(sprintf('CRT raster photon emission map (t: %2.2fms)', 1000*(stimulusCRTSequence(iFrame).timeInSeconds+phosphorFunction.timeInSeconds(rasterBin))), 'FontSize', 14);
 
             rasterTrace = cat(2,rasterTrace, phosphorFunction.activation(rasterBin));
             rasterTime  = (1:numel(rasterTrace))*(phosphorFunction.timeInSeconds(2)-phosphorFunction.timeInSeconds(1));
-            rampTrace = cat(2, rampTrace, frameSequence(iFrame).rampGain);
+            rampTrace = cat(2, rampTrace, stimulusCRTSequence(iFrame).rampGain);
             
             subplot('Position', [0.03 0.62 0.95 0.35]);
             plot(rasterTime*1000, rasterTrace, 'k.-', 'Color', [0.5 0.5 0.5], 'LineWidth', 2.0);
@@ -138,8 +139,9 @@ end
 
 function phosphorFunction = generatePhosphorActivationFunction(refreshRate) 
     alpha = 1.9; t_50 = 0.05/1000; n = 2;
-    samplesPerRefreshCycle = round(2*1000/refreshRate)
+    samplesPerRefreshCycle = round(2*1000/refreshRate);
     phosphorFunction.timeInSeconds = linspace(0,1.0/refreshRate, samplesPerRefreshCycle);
+    phosphorFunction.timeInSeconds = phosphorFunction.timeInSeconds(2:end);
     phosphorFunction.activation = (phosphorFunction.timeInSeconds.^n)./(phosphorFunction.timeInSeconds.^(alpha*n) + t_50^(alpha*n));
     phosphorFunction.activation = phosphorFunction.activation - phosphorFunction.activation(end);
     phosphorFunction.activation(phosphorFunction.activation<0) = 0;
