@@ -22,5 +22,6 @@ p.ph = 0;
 coneContrasts = [0.05 -0.05 0]';
 backgroundxyY = [0.27 0.30 49.8]';
 monitorFile = 'CRT-HP';
-gaborScene = colorGaborSceneCreate(p,coneContrasts,backgroundxyY,monitorFile);
+viewingDistance = 1;
+gaborScene = colorGaborSceneCreate(p,coneContrasts,backgroundxyY,monitorFile,viewingDistance);
 vcAddAndSelectObject(gaborScene);sceneWindow;

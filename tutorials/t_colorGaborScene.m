@@ -256,7 +256,7 @@ gaborConeMosaic.setSizeToFOV(fieldOfViewDegs/2);
 % in the compute function. If set to true, it uses an os object inside the
 % coneMosaic object. The default is the linearOS.  Here we don't need that.
 gaborConeMosaic.noiseFlag = false;
-photons = gaborConeMosaic.compute(gaborOI,'currentFlag',false);
+isomerizations = gaborConeMosaic.compute(gaborOI,'currentFlag',false);
 
 %% Take a look at the mosaic responses
 gaborConeMosaic.guiWindow;
@@ -265,10 +265,16 @@ gaborConeMosaic.guiWindow;
 % Extract the min and max absorptions in a loop. Since we are
 % extracting only L, M, or S absorptions at each iteration, we get a vector
 % so one call to max/min will suffice.
+%
+% These are close enough to the desired values that it seems OK, although
+% why they aren't exactly the desired values is a little mysterious.  It is
+% possible that the oi/coneMosaic object leads to slightly different cone
+% fundamentals, or that the monitor quantization leads to the small
+% deviatoins.  Someone energetic could track this down.
 conePattern = gaborConeMosaic.pattern;
 for ii = 2:4
-    maxAbsorption = max(photons(conePattern==ii));
-    minAbsorption = min(photons(conePattern==ii));
+    maxAbsorption = max(isomerizations(conePattern==ii));
+    minAbsorption = min(isomerizations(conePattern==ii));
     
     fprintf('%s cone absorptions\n\tMax: %d \n\tMin: %d\n',coneTypes{ii-1},maxAbsorption,minAbsorption);
     fprintf('\tAbsolute contrast: %04.3f\n',(maxAbsorption-minAbsorption)/(maxAbsorption+minAbsorption));
