@@ -35,10 +35,6 @@ if (~oiParams.lens)
     lens = oiGet(theOI,'lens');
     lens.density = 0;
 	theOI = oiSet(theOI,'lens',lens);
-en
-oiParams.offAxis = false;
-oiParams.blur = false;
-oiParams.lens = true;
-theOI = oiCreate('human');
-theOI = oiSet(theOI,'h fov',gaborParams.fieldOfViewDegs);
+end
+
 
