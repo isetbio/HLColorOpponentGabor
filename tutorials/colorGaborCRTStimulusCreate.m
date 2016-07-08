@@ -23,7 +23,7 @@ function stimulusCRTSequence = colorGaborCRTStimulusCreate
     % Stimulus temporal ramping params
     rampTauInSeconds = 0.165;  stimulusDurationInSeconds = 2*rampTauInSeconds;
     
-    % Generate frame scenes
+    % Generate the stimulus sequence
     dt = phosphorFunction.timeInSeconds(2)-phosphorFunction.timeInSeconds(1);
     tBins = round(stimulusDurationInSeconds/dt);
     rasterActivation = [];
@@ -95,6 +95,11 @@ function visualizeStimulus(stimulusCRTSequence)
         title(sprintf('CRT photon emission map (frame: %d)', iFrame), 'FontSize', 14);
 
         for rasterBin = 1:numel(phosphorFunction.activation)
+            
+            rasterTrace = cat(2,rasterTrace, phosphorFunction.activation(rasterBin));
+            rasterTime  = (1:numel(rasterTrace))*(phosphorFunction.timeInSeconds(2)-phosphorFunction.timeInSeconds(1));
+            rampTrace = cat(2, rampTrace, stimulusCRTSequence(iFrame).rampGain);
+            
             subplot('Position', [0.51 0.02 0.49 0.49]);
             framePhotons = sceneGet(stimulusCRTSequence(iFrame).frameScene, 'photons');
             rasterTotalPhotons = framePhotons * phosphorFunction.activation(rasterBin) + leakagePhotons;
@@ -111,9 +116,6 @@ function visualizeStimulus(stimulusCRTSequence)
             hCbar.Color = [0.2 0.2 0.2];
             title(sprintf('CRT raster photon emission map (t: %2.2fms)', 1000*(stimulusCRTSequence(iFrame).timeInSeconds+phosphorFunction.timeInSeconds(rasterBin))), 'FontSize', 14);
 
-            rasterTrace = cat(2,rasterTrace, phosphorFunction.activation(rasterBin));
-            rasterTime  = (1:numel(rasterTrace))*(phosphorFunction.timeInSeconds(2)-phosphorFunction.timeInSeconds(1));
-            rampTrace = cat(2, rampTrace, stimulusCRTSequence(iFrame).rampGain);
             
             subplot('Position', [0.03 0.62 0.95 0.35]);
             plot(rasterTime*1000, rasterTrace, 'k.-', 'Color', [0.5 0.5 0.5], 'LineWidth', 2.0);
