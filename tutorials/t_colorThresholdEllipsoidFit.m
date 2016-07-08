@@ -57,7 +57,7 @@ thresholdExcitations = PointsOnEllipsoidFind(simulatedQ,testExcitationDirections
 thresholdContrasts =  bsxfun(@times,thresholdExcitations,1./theBgLMS);
 
 % Add some noise to the length of each simulated threshold
-thresholdNoiseFractionSd = 0.05;
+thresholdNoiseFractionSd = 0.02;
 for ii = 1:size(thresholdContrasts,2)
     noisyThresholdContrasts(:,ii) = thresholdContrasts(:,ii)*(1+normrnd(0,thresholdNoiseFractionSd));
 end
@@ -102,7 +102,7 @@ axis('square');
 xlabel('L contrast'); ylabel('M contrast'); zlabel('S contrast');
 title('Simulated data and initial fit ellipsoid');
 
-%% Looking at the plot reveals that although the ellipsoid fits the data well,
+%% Looking at the plot reveals that although the ellipsoid probably fits the data well,
 % the data may not fully constrain the ellipsoid, depending on how it is aligned
 % with the color directions sampled in the (simulated) measurments).  There
 % is some run to run variability in this regard, depending on how the

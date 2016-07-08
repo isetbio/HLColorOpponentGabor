@@ -205,7 +205,7 @@ title('Gamma correction');
 % are looking at the stimuli on a monitor different from the display file
 % that we loaded, and thus the RGB values will not produce exactly the
 % desired appearance.
-vcNewGraphWin; imagesc(gaborRGB /max(gaborRGB(:))); axis square;
+vcNewGraphWin; h = imagesc(gaborRGB /max(gaborRGB(:))); axis square;
 
 % Finally, make the actual isetbio scene
 % This combines the image we build and the display properties.
