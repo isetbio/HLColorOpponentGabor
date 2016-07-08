@@ -69,7 +69,7 @@ viewingDistance = 0.75;
 % sample time in the constructor because setting the sample time via the
 % setter gives us a warning. We'll also just use one set of temporal
 % variables across all three stimuli to keep things consistent.
-theMosaic = coneMosaic('IntegrationTime',temporalParams.stimulusDurationInSeconds,...
+theMosaic = coneMosaic('IntegrationTime',temporalParams.samplingIntervalInSeconds,...
     'SampleTime',temporalParams.samplingIntervalInSeconds);
 theMosaic.fov = gaborParams.fieldOfViewDegs/2;
 
@@ -94,6 +94,9 @@ gaborOI = oiCompute(oiCreate('human'),gaborScene);
 % is set to false, the current computed will also NOT contain photon noise.
 [photons,coneCurrent] = theMosaic.compute(gaborOI,'currentFlag',true);
 
+% We can examine the results in the coneMosaic gui window.
+theMosaic.guiWindow;
+
 %% Manually compute cone current
 %
 % If we would like to generate cone currents for a single scene but for a
@@ -108,7 +111,6 @@ gaborOI = oiCompute(oiCreate('human'),gaborScene);
 largeMosaic = theMosaic.copy;
 largeMosaic.fov = gaborParams.fieldOfViewDegs;
 largeMosaic.noiseFlag = false;
-
 
 % We'll also need to know the size difference between the large sensor and
 % our original sensor in units of cones. One somewhat annoying thing is
@@ -145,6 +147,12 @@ for ii = 1:1
     % absorption RATE and not absolute number of absorptions.
     photonRate = photons/theMosaic.sampleTime;
     coneCurrent = theMosaic.os.compute(photonRate,theMosaic.pattern);
+    
+    % Since we manually computed some things here, we need to set the
+    % appropriate fields in the coneMosaic before using the window.
+    theMosaic.absorptions = photons;
+    theMosaic.current = coneCurrent;
+    theMosaic.guiWindow;
 end
 
 %% Generate cone current from movie stimulus
@@ -156,7 +164,7 @@ end
 % by directly accessing the outer segment object.
 
 % For generating the static absorptions, we'll want to adjust some
-% parameters regarding the integration time and removing any eye movements
+% parameters regarding the integration time and remove any eye movements
 % present in our coneMosaic object. We'll do this by creating a temporary copy.
 tempMosaic = theMosaic.copy;
 tempMosaic.integrationTime = temporalParams.samplingIntervalInSeconds;
@@ -178,3 +186,8 @@ photons = coneMosaic.photonNoise(photons);
 photonRate = photons/temporalParams.samplingIntervalInSeconds;
 
 coneCurrent = theMosaic.os.compute(photonRate,theMosaic.pattern);
+
+% Set fields in the coneMosaic object as before
+theMosaic.absorptions = photons;
+theMosaic.current = coneCurrent;
+theMosaic.guiWindow;
