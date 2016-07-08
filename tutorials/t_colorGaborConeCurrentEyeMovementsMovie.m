@@ -25,7 +25,7 @@ gaborParams.col = 128;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.testConeContrasts = [0.05 -0.05 0]';
+gaborParams.coneContrasts = [0.05 -0.05 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.monitorFile = 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
@@ -40,14 +40,18 @@ oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 oiParams.offAxis = false;
 oiParams.blur = false;
 oiParams.lens = true;
+theBaseOI = colorDetectOpticalImageConstruct(oiParams);
 
 % Cone mosaic parameters
 mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs/2;
 mosaicParams.maculur = true;
 mosaicParams.LMSRatio = [1/3 1/3 1/3];
-mosaciParams.osModel = 'Linear';
+mosaicParams.osModel = 'Linear';
 
 %****************************************
+
+[stimulusSampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams);
+nSampleTimes = length(stimulusSampleTimes)
 
 
 %% Create a cone mosaic
@@ -59,19 +63,22 @@ mosaciParams.osModel = 'Linear';
 % setter gives us a warning. We'll also just use one set of temporal
 % variables across all three stimuli to keep things consistent.
 theMosaic = coneMosaic('IntegrationTime',temporalParams.samplingIntervalInSeconds,...
-    'SampleTime',temporalParams.samplingIntervalInSeconds);
+                       'SampleTime',temporalParams.samplingIntervalInSeconds);
+                   
 theMosaic.fov = gaborParams.fieldOfViewDegs/2;
 
 % This will generate nSampleTimes worth of fixational eye movements in the
 % coneMosaic object. These eye movements will then be applied when calling
 % the compute function.
 theMosaic.emGenSequence(nSampleTimes);
+size(theMosaic.emPositions)
+
 
 %% Create a static scene and oi
 %
 % We can generate a static gabor stimulus here. We'll also pass it through
 % the human optics.
-gaborScene = colorGaborSceneCreate(gaborParams,testConeContrasts,backgroundxyY,monitorFile,viewingDistance);
+gaborScene = colorGaborSceneCreate(gaborParams);
 gaborOI = oiCompute(oiCreate('human'),gaborScene);
 
 %% Compute cone current
@@ -121,7 +128,7 @@ LMS = largeMosaic.computeSingleFrame(gaborOI,'FullLMS',true);
 % We can now generate absorptions for any number of eye movement paths, add
 % photon noise, and then compute the cone current. Note that the for loop
 % below can be iterated for as many times as desired.
-for ii = 1:1
+for ii = 1:10
     theMosaic.emGenSequence(nSampleTimes);
     isomerizations = theMosaic.applyEMPath(LMS,'padRows',rowPadding,'padCols',colPadding);
     
@@ -139,7 +146,7 @@ for ii = 1:1
     
     % Since we manually computed some things here, we need to set the
     % appropriate fields in the coneMosaic before using the window.
-    theMosaic.absorptions = photons;
+    theMosaic.absorptions = isomerizations;
     theMosaic.current = coneCurrent;
     theMosaic.guiWindow;
 end
@@ -161,9 +168,12 @@ tempMosaic.emPositions = [0 0];
 tempMosaic.noiseFlag = false;
 
 isomerizations = zeros([tempMosaic.rows tempMosaic.cols nSampleTimes]);
+theBaseGaborParams = gaborParams;
+
 for ii = 1:nSampleTimes
-    currentContrast = testConeContrasts*gaussianTemporalWindow(ii);
-    tempScene = colorGaborSceneCreate(gaborParams,testConeContrasts,backgroundxyY,monitorFile,viewingDistance);
+    fprintf('Computing optical image %d of %d, time %0.3f\n',ii,nSampleTimes,sampleTimes(ii));
+    gaborParams.coneContrasts = theBaseGaborParams.coneContrasts*gaussianTemporalWindow(ii);
+    tempScene = colorGaborSceneCreate(gaborParams);
     tempOI = oiCompute(oiCreate('human'),tempScene);
     isomerizations(:,:,ii) = tempMosaic.compute(tempOI,'currentFlag',false);
 end
@@ -177,6 +187,6 @@ photonRate = isomerizations/temporalParams.samplingIntervalInSeconds;
 coneCurrent = theMosaic.os.compute(photonRate,theMosaic.pattern);
 
 % Set fields in the coneMosaic object as before
-theMosaic.absorptions = photons;
+theMosaic.absorptions = isomerizations;
 theMosaic.current = coneCurrent;
 theMosaic.guiWindow;

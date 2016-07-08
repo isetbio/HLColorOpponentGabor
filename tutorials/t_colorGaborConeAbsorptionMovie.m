@@ -33,8 +33,6 @@ gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.monitorFile = 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 
-%% Figure out temporal sampling and compute Gaussian temporal window
-%
 % Temporal stimulus parameters
 %
 % 50 msec sampling intervals are probably too long for real work, but OK
@@ -69,6 +67,7 @@ oiParams.offAxis = false;
 oiParams.blur = false;
 oiParams.lens = true;
 theBaseOI = colorDetectOpticalImageConstruct(oiParams);
+
 theOI = cell(nSampleTimes,1);
 for ii = 1:nSampleTimes
     % Compute retinal image
@@ -83,8 +82,9 @@ end
 mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs/2;
 mosaicParams.maculur = true;
 mosaicParams.LMSRatio = [1/3 1/3 1/3];
-mosaciParams.osModel = 'Linear';
+mosaicParams.osModel = 'Linear';
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
+
 theMosaic.noiseFlag = false;
 for ii = 1:nSampleTimes      
     % Compute mosaic response for each time sample

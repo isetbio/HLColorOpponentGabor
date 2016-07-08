@@ -10,7 +10,7 @@ function sceneSequence = colorGaborSceneSequenceCreate(gaborParams,temporalParam
     monitorFile = 'CRT-HP';
     viewingDistanceInMeters = 1.82;
     
-    staticScene = colorGaborSceneCreate(p, coneContrasts, backgroundxyY, monitorFile, viewingDistanceInMeters);
+    staticScene = colorGaborSceneCreate(gaborParams);
     vcAddObject(staticScene); sceneWindow;
 
     % light leakage image (10.0 cd/m2)
