@@ -74,7 +74,7 @@ ylabel('Window Amplitude');
 title('Stimulus Temporal Window');
 
 %% Create the OI object we'll use to compute the retinal images from the scenes
-oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegrees;
+oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 oiParams.offAxis = false;
 oiParams.blur = false;
 oiParams.lens = true;
