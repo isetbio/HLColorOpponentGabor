@@ -1,4 +1,4 @@
-function [sampleTimes, gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams)
+function [sampleTimes, gaussianTemporalWindow, rasterModulation] = gaussianTemporalWindowCreate(temporalParams)
 % [sampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams)
 %
 % Create a Gaussian temporal window.
@@ -18,19 +18,29 @@ sampleTimes = linspace(-nPositiveTimeSamples*temporalParams.stimulusSamplingInte
     2*nPositiveTimeSamples+1);
 gaussianTemporalWindow = exp(-(sampleTimes.^2/temporalParams.windowTauInSeconds.^2));
 
-
 if (isfield(temporalParams, 'addCRTrasterEffect')) && (temporalParams.addCRTrasterEffect)
     % Add CRT raster effect
     phosphorFunction = crtPhosphorActivationFunction(1/temporalParams.stimulusSamplingIntervalInSeconds, temporalParams.rasterSamples);
     rasterSamples = numel(phosphorFunction.timeInSeconds);
-    raster = zeros(1,(numel(gaussianTemporalWindow))*rasterSamples);
-    raster(1,1:rasterSamples:end) = gaussianTemporalWindow;
+    raster = zeros(1,numel(gaussianTemporalWindow)*rasterSamples);
+    raster(1,1:rasterSamples:end) = gaussianTemporalWindow*0+1;
+    max(phosphorFunction.activation)
     rasterModulation = conv(raster, phosphorFunction.activation);
+    max(rasterModulation)
+    pause
     rasterModulation = rasterModulation(1:numel(gaussianTemporalWindow)*rasterSamples);
-    gaussianTemporalWindow = rasterModulation;
+    
+    tmp = zeros(1,numel(gaussianTemporalWindow)*rasterSamples);
+    for i = 0:numel(gaussianTemporalWindow)*rasterSamples-1
+        tmp(i+1) = gaussianTemporalWindow(floor(i/rasterSamples)+1);
+    end
+    gaussianTemporalWindow = tmp;
+    
     sampleTimes = linspace(sampleTimes(1), sampleTimes(end), numel(gaussianTemporalWindow));
 %     figure(2);
 %     plot(sampleTimes, gaussianTemporalWindow);
 %     title('raster modulation');
+else
+    rasterModulation = [];
 end
 

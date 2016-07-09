@@ -24,8 +24,10 @@ gaborParams.ang = 0;
 gaborParams.ph = 0;
 gaborParams.coneContrasts = [0.5 0.5 0.5]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
+gaborParams.leakageLum = 2.0;
 gaborParams.monitorFile = 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
+theBaseGaborParams = gaborParams;
 
 % The time step at which to compute eyeMovements and osResponses
 simulationTimeStep = 1/1000;
@@ -53,12 +55,12 @@ mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1 0 0/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
-mosaicParams.photonNoise = false;
-mosaicParams.osNoise = false;
+mosaicParams.photonNoise = true;
+mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
 %% Create stimulus temporal window
-[stimulusSampleTimes, gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams);
+[stimulusSampleTimes, gaussianTemporalWindow, rasterModulation] = gaussianTemporalWindowCreate(temporalParams);
 if (temporalParams.addCRTrasterEffect)
     temporalParams.stimulusSamplingIntervalInSeconds = stimulusSampleTimes(2)-stimulusSampleTimes(1);
 end
@@ -82,6 +84,13 @@ for stimFrameIndex = 1:stimulusFramesNum
     
     % modulate stimulus contrast
     gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
+    
+    % apply CRT raster modulation
+    if (~isempty(rasterModulation))
+        gaborParams = theBaseGaborParams;
+        gaborParams.contrast = gaborParams.contrast * rasterModulation(stimFrameIndex);
+        gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
+    end
     
     % create a scene for the current frame
     theScene = colorGaborSceneCreate(gaborParams);
