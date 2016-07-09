@@ -39,7 +39,7 @@ gaborParams.viewingDistance = 0.75;
 % for this tutorial.
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
-temporalParams.samplingIntervalInSeconds = 0.050;
+temporalParams.stimulusSamplingIntervalInSeconds = 0.050;
 [sampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams);
 nSampleTimes = length(sampleTimes);
 
