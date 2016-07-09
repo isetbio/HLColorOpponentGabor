@@ -10,15 +10,15 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
     
     if (renderVideo)
         % Open video stream
-        videoFilename = sprintf('IsomerizationsWithEyeMovements.m4v');
+        videoFilename = fullfile(pwd(), sprintf('IsomerizationsWithEyeMovements.m4v'));
         writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
         writerObj.FrameRate = 15; 
         writerObj.Quality = 100;
         writerObj.open();
     end
     
-    mosaicXaxis = -theMosaic.cols/2:theMosaic.cols/2;
-    mosaicYaxis = -theMosaic.rows/2:theMosaic.rows/2;
+    mosaicXaxis = linspace(-theMosaic.cols/2, theMosaic.cols/2, theMosaic.cols);
+    mosaicYaxis = linspace(-theMosaic.rows/2, theMosaic.rows/2, theMosaic.rows);
     for timeStep = 1:size(theMosaic.absorptions,3)
         subplot('Position', [0.01 0.03 0.45 0.94]);
         imagesc(mosaicXaxis, mosaicYaxis, theMosaic.absorptions(:,:,timeStep));
@@ -27,6 +27,7 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         plot(eyeMovementSequence(idx:timeStep,1), -eyeMovementSequence(idx:timeStep,2), 'w-', 'LineWidth', 2.0);
         plot(eyeMovementSequence(idx:timeStep,1), -eyeMovementSequence(idx:timeStep,2), 'r.-');
         hold off;
+        axis 'image'; axis 'xy'
         xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
         axis 'image'
         set(gca, 'CLim', isomerizationRange, 'XTick', [], 'YTick', []);
@@ -41,7 +42,7 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         subplot('Position', [0.52 0.05 0.45 0.94]);
         imagesc(theMosaic.current(:,:,timeStep));
         xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
-        axis 'image'
+        axis 'image'; axis 'xy'
         set(gca, 'CLim', photocurrentRange, 'XTick', [], 'YTick', []);
         hCbar = colorbar(); % 'Ticks', cbarStruct.ticks, 'TickLabels', cbarStruct.tickLabels);
         hCbar.Orientation = 'vertical'; 

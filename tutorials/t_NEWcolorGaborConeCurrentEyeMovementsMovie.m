@@ -35,6 +35,8 @@ frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
+
+% Optional CRT raster effects
 temporalParams.addCRTrasterEffect = false;
 temporalParams.rasterSamples = 5;    % generate this many raster samples / stimulus refresh interval
 
