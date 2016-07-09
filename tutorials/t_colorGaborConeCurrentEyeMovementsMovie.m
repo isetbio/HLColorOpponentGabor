@@ -33,7 +33,7 @@ gaborParams.viewingDistance = 0.75;
 % Temporal stimulus parameters
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
-temporalParams.samplingIntervalInSeconds = 0.010;
+temporalParams.stimulusSamplingIntervalInSeconds = 0.010;
 
 % Optical image parameters
 oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
@@ -62,8 +62,8 @@ nSampleTimes = length(sampleTimes)
 % sample time in the constructor because setting the sample time via the
 % setter gives us a warning. We'll also just use one set of temporal
 % variables across all three stimuli to keep things consistent.
-theMosaic = coneMosaic('IntegrationTime',temporalParams.samplingIntervalInSeconds,...
-                       'SampleTime',temporalParams.samplingIntervalInSeconds);
+theMosaic = coneMosaic('IntegrationTime',temporalParams.stimulusSamplingIntervalInSeconds,...
+                       'SampleTime',temporalParams.stimulusSamplingIntervalInSeconds);
                    
 theMosaic.fov = gaborParams.fieldOfViewDegs/2;
 
@@ -163,7 +163,7 @@ end
 % parameters regarding the integration time and remove any eye movements
 % present in our coneMosaic object. We'll do this by creating a temporary copy.
 tempMosaic = theMosaic.copy;
-tempMosaic.integrationTime = temporalParams.samplingIntervalInSeconds;
+tempMosaic.integrationTime = temporalParams.stimulusSamplingIntervalInSeconds;
 tempMosaic.emPositions = [0 0];
 tempMosaic.noiseFlag = false;
 
@@ -182,7 +182,7 @@ end
 % object. Then we convert to photon rate as before and use our original
 % coneMosaic item to compute the cone current.
 isomerizations = coneMosaic.photonNoise(isomerizations);
-photonRate = isomerizations/temporalParams.samplingIntervalInSeconds;
+photonRate = isomerizations/temporalParams.stimulusSamplingIntervalInSeconds;
 
 coneCurrent = theMosaic.os.compute(photonRate,theMosaic.pattern);
 
