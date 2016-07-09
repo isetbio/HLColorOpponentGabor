@@ -24,8 +24,8 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         imagesc(mosaicXaxis, mosaicYaxis, theMosaic.absorptions(:,:,timeStep));
         hold on;
         idx = max([1 timeStep-100]);
-        plot(eyeMovementSequence(idx:timeStep,1), -eyeMovementSequence(idx:timeStep,2), 'w-', 'LineWidth', 2.0);
-        plot(eyeMovementSequence(idx:timeStep,1), -eyeMovementSequence(idx:timeStep,2), 'r.-');
+        plot(eyeMovementSequence(idx:timeStep,1), -eyeMovementSequence(idx:timeStep,2), 'w-', 'Color', [1.0 0.5 0.5], 'LineWidth', 4.0);
+        plot(eyeMovementSequence(idx:timeStep,1), -eyeMovementSequence(idx:timeStep,2), 'r.-', 'LineWidth', 2.0);
         hold off;
         axis 'image'; axis 'xy'
         xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
@@ -39,7 +39,7 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         hCbar.Color = [0.2 0.2 0.2];
         title(sprintf('isomerization map (t: %2.2f ms)', timeAxis(timeStep)*1000), 'FontSize', 16, 'FontName', 'Menlo');
 
-        subplot('Position', [0.52 0.05 0.45 0.94]);
+        subplot('Position', [0.52 0.03 0.45 0.94]);
         imagesc(theMosaic.current(:,:,timeStep));
         xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
         axis 'image'; axis 'xy'

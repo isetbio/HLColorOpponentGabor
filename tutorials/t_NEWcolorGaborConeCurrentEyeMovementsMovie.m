@@ -104,7 +104,8 @@ for stimFrameIndex = 1:stimulusFramesNum
 end % for stimFrameIndex
 
 %% Compute photocurrent sequence
-coneIsomerizationRate = coneIsomerizationSequence/mosaicParams.timeStepInSeconds;
+fprintf('Computing photocurrent sequence ...\n');
+coneIsomerizationRate = coneIsomerizationSequence/mosaicParams.integrationTimeInSeconds;
 photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
 
 %% Update theMosaic params
