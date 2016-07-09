@@ -11,8 +11,12 @@ ieInit; clear; close all;
 % Add project toolbox to Matlab path
 AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox')); 
 
-%% Define parameters of a gabor pattern
+%% Define parameters of simulation
 %
+% The time step at which to compute eyeMovements and osResponses
+simulationTimeStep = 1/1000;
+
+% Stimulus (gabor) params
 scaleF = 0.5;
 gaborParams.fieldOfViewDegs = 3*scaleF;
 gaborParams.gaussianFWHMDegs = 0.75*scaleF;
@@ -29,10 +33,8 @@ gaborParams.monitorFile = 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 theBaseGaborParams = gaborParams;
 
-% The time step at which to compute eyeMovements and osResponses
-simulationTimeStep = 1/1000;
 
-% Temporal stimulus parameters
+% Temporal modulation and stimulus sampling parameters
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
@@ -55,7 +57,7 @@ mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1 0 0/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
-mosaicParams.photonNoise = true;
+mosaicParams.photonNoise = false;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
@@ -73,7 +75,7 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 %% Create the cone mosaic
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
-% Generate eye movements for the entire stimulus duration
+%% Generate eye movements for the entire stimulus duration
 eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;
 eyeMovementsTotalNum = round(eyeMovementsPerStimFrame*stimulusFramesNum);
 eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);

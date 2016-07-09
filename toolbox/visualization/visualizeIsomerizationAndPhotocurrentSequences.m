@@ -13,10 +13,11 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         videoFilename = fullfile(pwd(), sprintf('IsomerizationsWithEyeMovements.m4v'));
         writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
         writerObj.FrameRate = 15; 
-        writerObj.Quality = 100;
+        writerObj.Quality = 50;
         writerObj.open();
     end
     
+    fprintf('Rendering responses ...\n');
     mosaicXaxis = linspace(-theMosaic.cols/2, theMosaic.cols/2, theMosaic.cols);
     mosaicYaxis = linspace(-theMosaic.rows/2, theMosaic.rows/2, theMosaic.rows);
     for timeStep = 1:size(theMosaic.absorptions,3)
