@@ -49,10 +49,10 @@ temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 % The parameer rasterSamples is the number
 % of raster samples generated per CRT refresh
 % interval.
-temporalParams.addCRTrasterEffect = true;
+temporalParams.addCRTrasterEffect = false;
 temporalParams.rasterSamples = 5; 
 if (temporalParams.addCRTrasterEffect)
-    simulationTimeStep = 1/1000;
+    simulationTimeStep = simulationTimeStep/temporalParams.rasterSamples;
 end
 
 % Optical image parameters
@@ -122,7 +122,7 @@ for stimFrameIndex = 1:stimulusFramesNum
     else
         coneIsomerizationSequence = cat(3, coneIsomerizationSequence, frameIsomerizationSequence);
     end
-end 
+end % for stimFrameIndex
 
 %% Compute photocurrent sequence
 fprintf('Computing photocurrent sequence ...\n');
