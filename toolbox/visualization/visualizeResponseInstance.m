@@ -15,8 +15,8 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
     timeAxis = (1:size(photocurrentSequence,3))*responseInstance.mosaicParams.timeStepInSeconds;
     
     % Determine plotting ranges
-    isomerizationRateRange = [min(isomerizationRate(:)) max(isomerizationRate(:))];
-    photocurrentRange = prctile(photocurrentSequence(:), [1 99]);
+    isomerizationRateRange = [4500 10500 ]; % prctile(isomerizationRate(:), [1 99]);
+    photocurrentRange = [-75 -55]; % prctile(photocurrentSequence(:), [1 99]);
     
     % Compute mosaic spatial axes
     coneRows = size(isomerizationRate,1);

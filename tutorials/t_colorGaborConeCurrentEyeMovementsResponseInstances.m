@@ -58,8 +58,8 @@ mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1 0 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
-mosaicParams.integrationTimeInSeconds = 5/1000;
-mosaicParams.photonNoise = false;
+mosaicParams.integrationTimeInSeconds = 50/1000;
+mosaicParams.photonNoise = true;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
@@ -70,7 +70,7 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
 % Generate response instances for a number of trials
-trialsNum = 2;
+trialsNum = 1;
 
 % Compute the trial data using the default parallel pool
 for iTrial = 1:trialsNum
