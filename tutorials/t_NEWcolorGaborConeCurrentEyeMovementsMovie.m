@@ -49,8 +49,11 @@ temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 % The parameer rasterSamples is the number
 % of raster samples generated per CRT refresh
 % interval.
-temporalParams.addCRTrasterEffect = false;
-temporalParams.rasterSamples = 5;   
+temporalParams.addCRTrasterEffect = true;
+temporalParams.rasterSamples = 5; 
+if (temporalParams.addCRTrasterEffect)
+    simulationTimeStep = 1/1000;
+end
 
 % Optical image parameters
 oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;

@@ -83,7 +83,7 @@ parfor iTrial = 1:trialsNum
     fprintf('\nWorker %d: Computing response instance %d/%d ... ', task.ID, iTrial, trialsNum);
     pause(0.1);
     
-    % compute the response instance for this trial
+    % compute and accumulate the response instances, one for each trial
     responseInstances{iTrial} = colorDetectResponseInstanceConstruct(simulationTimeStep, ...
             gaborParams, temporalParams, mosaicParams, theOI, theMosaic);
     fprintf('Completed');
