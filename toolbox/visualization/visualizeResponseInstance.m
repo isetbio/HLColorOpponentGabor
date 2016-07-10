@@ -7,9 +7,9 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
 %
 
     % Retrieve isomerization rate, photocurrent, and eye movement sequence
-    isomerizationRate = responseInstance.theMosaic.absorptions/responseInstance.theMosaic.integrationTime;
-    photocurrentSequence = responseInstance.theMosaic.current;
-    eyeMovementSequence = responseInstance.theMosaic.emPositions;
+    isomerizationRate = responseInstance.theMosaicIsomerizationRates/responseInstance.theMosaic.integrationTime;
+    photocurrentSequence = responseInstance.theMosaicPhotoCurrents;
+    eyeMovementSequence = responseInstance.theMosaicEyeMovements;
     
     % Compute response time axis
     timeAxis = (1:size(photocurrentSequence,3))*responseInstance.mosaicParams.timeStepInSeconds;
