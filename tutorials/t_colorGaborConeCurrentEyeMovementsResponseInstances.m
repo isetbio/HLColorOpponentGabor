@@ -2,7 +2,7 @@
 %
 %  Show how to generate a number of response instances for a given stimulus condition.
 %
-%  See also t_NEWcolorGaborConeCurrentEyeMovementsMovie. 
+%  See also t_ßcolorGaborConeCurrentEyeMovementsMovie. 
 %
 %  7/9/16  npc Wrote it.
 
@@ -63,7 +63,6 @@ mosaicParams.photonNoise = false;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
-
 %% Create the optics
 theOI = colorDetectOpticalImageConstruct(oiParams);
 
@@ -80,10 +79,10 @@ end
 trialsNum = 10;
 
 % Compute the trial data using the default parallel pool
-parfor iTrial = 1:trialsNum
+for iTrial = 1:trialsNum
     % Get worker ID
     task = getCurrentTask();
-    fprintf('\nWorker %d: Computing response instance %d/%d ... ', task.ID, iTrial, trialsNum);
+    %fprintf('\nWorker %d: Computing response instance %d/%d ... ', task.ID, iTrial, trialsNum);
     pause(0.1);
     
     % compute and accumulate the response instances, one for each trial

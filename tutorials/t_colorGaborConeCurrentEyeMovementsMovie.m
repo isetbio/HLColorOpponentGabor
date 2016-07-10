@@ -1,4 +1,4 @@
-%% t_NEWconeGaborConeCurrentEyeMovementsMovie
+%% t_coneGaborConeCurrentEyeMovementsMovie
 %
 %  Show how to generate a movie with the cone absoprtions and photocurrent
 %  to a stimulus, with eye movements and optional CRT raster effects
@@ -28,7 +28,7 @@ gaborParams.ang = 0;
 gaborParams.ph = 0;
 gaborParams.coneContrasts = [0.5 0.5 0.5]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
-gaborParams.leakageLum = 2.0;
+gaborParams.leakageLum = 1.0;
 gaborParams.monitorFile = 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 theBaseGaborParams = gaborParams;
@@ -122,7 +122,7 @@ for stimFrameIndex = 1:stimulusFramesNum
     else
         coneIsomerizationSequence = cat(3, coneIsomerizationSequence, frameIsomerizationSequence);
     end
-end % for stimFrameIndex
+end 
 
 %% Compute photocurrent sequence
 fprintf('Computing photocurrent sequence ...\n');
