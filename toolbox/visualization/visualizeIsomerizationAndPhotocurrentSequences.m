@@ -52,7 +52,7 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         hCbar.Color = [0.2 0.2 0.2];
         title(sprintf('isomerization map (t: %2.2f ms)', timeAxis(timeStep)*1000), 'FontSize', 16, 'FontName', 'Menlo');
 
-        subplot('Position', [0.52 0.03 0.43 0.94]);
+        subplot('Position', [0.53 0.03 0.43 0.94]);
         imagesc(photocurrent(:,:,timeStep));
         xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
         axis 'image'; axis 'xy'
