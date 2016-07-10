@@ -42,6 +42,9 @@ temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 % Optional CRT raster effects
 temporalParams.addCRTrasterEffect = false;
 temporalParams.rasterSamples = 5;    % generate this many raster samples / stimulus refresh interval
+if (temporalParams.addCRTrasterEffect)
+    simulationTimeStep = simulationTimeStep/temporalParams.rasterSamples;
+end
 
 % Optical image parameters
 oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
@@ -85,7 +88,7 @@ parfor iTrial = 1:trialsNum
     
     % compute and accumulate the response instances, one for each trial
     responseInstances{iTrial} = colorDetectResponseInstanceConstruct(simulationTimeStep, ...
-            gaborParams, temporalParams, mosaicParams, theOI, theMosaic);
+            gaborParams, temporalParams, oiParams, mosaicParams, theOI, theMosaic);
     fprintf('Completed');
 end
 
@@ -95,12 +98,7 @@ exportToPDF = true;
 % Save stimulus/response data
 if (saveData)
     fileName = 'testData.mat';
-    stimulusConditionStruct = struct(...
-        'gaborParams', gaborParams, ...
-        'temporalParams', temporalParams, ...
-        'mosaicParams', mosaicParams ...
-        );
-    save(fileName, 'stimulusConditionStruct', 'responseInstances', '-v7.3');
+    save(fileName, 'responseInstances', '-v7.3');
 end
 
 % Visualize responses

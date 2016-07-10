@@ -1,4 +1,4 @@
-function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic)
+function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeStep, gaborParams, temporalParams, oiParams, mosaicParams, theOI, theMosaic)
 % responseInstance = colorDetectResponseInstanceConstruct(simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic)
 % 
 % Construct a response instance given the simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic
@@ -23,33 +23,34 @@ function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeS
     % Generate eye movements for the entire stimulus duration
     eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;
     eyeMovementsTotalNum = round(eyeMovementsPerStimFrame*stimulusFramesNum);
-    responseInstance.eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);
+    eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);
     
     % Loop over our stimulus frames
     for stimFrameIndex = 1:stimulusFramesNum
         
         waitbar(0.9*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('Computing isomerizations for frame %d', stimFrameIndex));
-        % modulate stimulus contrast
+        
+        % Modulate stimulus contrast
         gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
         
-        % apply CRT raster modulation
+        % Apply CRT raster modulation
         if (~isempty(rasterModulation))
             gaborParams = theBaseGaborParams;
-            gaborParams.contrast = gaborParams.contrast * rasterModulation(stimFrameIndex);
+            gaborParams.contrast = gaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
             gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
         end
     
-        % create a scene for the current frame
+        % Create a scene for the current frame
         theScene = colorGaborSceneCreate(gaborParams);
     
-        % compute the optical image
+        % Compute the optical image
         theOI = oiCompute(theOI, theScene);
     
-        % apply current frame eye movements to the mosaic
+        % Apply current frame eye movements to the mosaic
         eyeMovementIndices = (round((stimFrameIndex-1)*eyeMovementsPerStimFrame)+1 : round(stimFrameIndex*eyeMovementsPerStimFrame));
-        theMosaic.emPositions = responseInstance.eyeMovementSequence(eyeMovementIndices,:);
+        theMosaic.emPositions = eyeMovementSequence(eyeMovementIndices,:);
     
-        % compute isomerizations for the current frame
+        % Compute isomerizations for the current frame
         frameIsomerizationSequence = theMosaic.compute(theOI,'currentFlag',false);
     
         if (stimFrameIndex==1)
@@ -59,11 +60,25 @@ function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeS
         end
     end % for stimFrameIndex
 
-    % Compute photocurrent sequence
+    %% Compute photocurrent sequence
     waitbar(0.95, progressHandle, sprintf('Computing photocurrent sequence'));
-    responseInstance.coneIsomerizationRate = coneIsomerizationSequence/mosaicParams.integrationTimeInSeconds;
-    responseInstance.photocurrentSequence = theMosaic.os.compute(responseInstance.coneIsomerizationRate,theMosaic.pattern);
-    responseInstance.timeAxis = (1:size(responseInstance.photocurrentSequence,3))*mosaicParams.timeStepInSeconds;
+    coneIsomerizationRate = coneIsomerizationSequence/theMosaic.integrationTime;
+    photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
+    
+    %% Update theMosaic params
+    theMosaic.absorptions = coneIsomerizationSequence;
+    theMosaic.current = photocurrentSequence;
+    theMosaic.emPositions = eyeMovementSequence;
+
+    % Return a struct with the computed response and all simulation params  
+    responseInstance = struct(...
+        'theMosaic', theMosaic, ...
+        'gaborParams', gaborParams, ...
+        'temporalParams', temporalParams, ...
+        'oiParams', oiParams, ...
+        'mosaicParams', mosaicParams, ...
+        'simulationTimeStep', simulationTimeStep...
+        );
     
     % Close progress bar
     close(progressHandle);
