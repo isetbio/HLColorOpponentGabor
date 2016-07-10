@@ -2,7 +2,7 @@
 %
 %  Show how to generate a number of response instances for a given stimulus condition.
 %
-%  See also t_coneGaborConeCurrentEyeMovementsMovie. 
+%  See also t_NEWcolorGaborConeCurrentEyeMovementsMovie. 
 %
 %  7/9/16  npc Wrote it.
 
@@ -89,25 +89,34 @@ parfor iTrial = 1:trialsNum
     fprintf('Completed');
 end
 
-% Save data
-fileName = 'testData.mat';
-stimulusConditionStruct = struct(...
-    'gaborParams', gaborParams, ...
-    'temporalParams', temporalParams, ...
-    'mosaicParams', mosaicParams ...
-    );
-save(fileName, 'stimulusConditionStruct', 'responseInstances', '-v7.3');
+saveData = false;
+exportToPDF = true;
 
+% Save stimulus/response data
+if (saveData)
+    fileName = 'testData.mat';
+    stimulusConditionStruct = struct(...
+        'gaborParams', gaborParams, ...
+        'temporalParams', temporalParams, ...
+        'mosaicParams', mosaicParams ...
+        );
+    save(fileName, 'stimulusConditionStruct', 'responseInstances', '-v7.3');
+end
+
+% Visualize responses
 fprintf('\nVisualizing responses ...\n');
-% Visualize the data
 for iTrial = 1:trialsNum
     % Visualize this response instance
     figHandle = visualizeResponseInstance(responseInstances{iTrial}, iTrial, trialsNum);
     figFileNames{iTrial} = sprintf('responseInsrance_%d.pdf',iTrial);
-    NicePlot.exportFigToPDF(figFileNames{iTrial}, figHandle, 300);
+    if (exportToPDF)
+        NicePlot.exportFigToPDF(figFileNames{iTrial}, figHandle, 300);
+    end
 end
 
-% Export summary PDF
-summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
-fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
-NicePlot.combinePDFfilesInSinglePDF(figFileNames, summaryPDF);
+% Export summary PDF with all responses
+if (exportToPDF)
+    summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
+    fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
+    NicePlot.combinePDFfilesInSinglePDF(figFileNames, summaryPDF);
+end
