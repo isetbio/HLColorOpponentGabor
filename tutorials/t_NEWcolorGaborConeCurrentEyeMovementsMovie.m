@@ -11,7 +11,7 @@ ieInit; clear; close all;
 % Add project toolbox to Matlab path
 AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox')); 
 
-%% Define parameters of simulation
+%% Define parameters of simulation  
 %
 % The time step at which to compute eyeMovements and osResponses
 simulationTimeStep = 5/1000;
@@ -33,16 +33,24 @@ gaborParams.monitorFile = 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 theBaseGaborParams = gaborParams;
 
-
 % Temporal modulation and stimulus sampling parameters
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 
-% Optional CRT raster effects
+% Optional CRT raster effects.
+% 
+% The underlying routine that generates temporal samples 
+% can simulate the fact that CRTs produce an impulse during
+% each frame, although this simulation works on a frame basis
+% not on a pixel-by-pixel basis.  
+% 
+% The parameer rasterSamples is the number
+% of raster samples generated per CRT refresh
+% interval.
 temporalParams.addCRTrasterEffect = false;
-temporalParams.rasterSamples = 5;    % generate this many raster samples / stimulus refresh interval
+temporalParams.rasterSamples = 5;   
 
 % Optical image parameters
 oiParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
@@ -60,7 +68,6 @@ mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = false;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
-
 
 %% Create the optics
 theOI = colorDetectOpticalImageConstruct(oiParams);
@@ -84,27 +91,27 @@ eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);
 for stimFrameIndex = 1:stimulusFramesNum
     fprintf('Computing isomerizations for frame %d of %d\n', stimFrameIndex, stimulusFramesNum);
     
-    % modulate stimulus contrast
+    % Modulate stimulus contrast
     gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
     
-    % apply CRT raster modulation
+    % Apply CRT raster modulation
     if (~isempty(rasterModulation))
         gaborParams = theBaseGaborParams;
         gaborParams.contrast = gaborParams.contrast * rasterModulation(stimFrameIndex);
         gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
     end
     
-    % create a scene for the current frame
+    % Create a scene for the current frame
     theScene = colorGaborSceneCreate(gaborParams);
     
-    % compute the optical image
+    % Compute the optical image
     theOI = oiCompute(theOI, theScene);
     
-    % apply current frame eye movements to the mosaic
+    % Apply current frame eye movements to the mosaic
     eyeMovementIndices = (round((stimFrameIndex-1)*eyeMovementsPerStimFrame)+1 : round(stimFrameIndex*eyeMovementsPerStimFrame));
     theMosaic.emPositions = eyeMovementSequence(eyeMovementIndices,:);
     
-    % compute isomerizations for the current frame
+    % Compute isomerizations for the current frame
     frameIsomerizationSequence = theMosaic.compute(theOI,'currentFlag',false);
     
     if (stimFrameIndex==1)
@@ -112,7 +119,7 @@ for stimFrameIndex = 1:stimulusFramesNum
     else
         coneIsomerizationSequence = cat(3, coneIsomerizationSequence, frameIsomerizationSequence);
     end
-end % for stimFrameIndex
+end 
 
 %% Compute photocurrent sequence
 fprintf('Computing photocurrent sequence ...\n');
