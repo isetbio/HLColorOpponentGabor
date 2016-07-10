@@ -11,6 +11,9 @@ function [sampleTimes, gaussianTemporalWindow, rasterModulation] = gaussianTempo
 % temporalParams.windowTauInSeconds - standard deviation of Gaussian window 
 % temporalParams.stimulusDurationInSeconds - stimulus duration
 % temporalParams.samplingIntervalInSeconds - stimulus sampling interval
+%
+%  7/7/16  dhb Wrote it.
+%  7/9/16  npd Added CRT raster effect.
 
 nPositiveTimeSamples = ceil(0.5*temporalParams.stimulusDurationInSeconds/temporalParams.stimulusSamplingIntervalInSeconds);
 sampleTimes = linspace(-nPositiveTimeSamples*temporalParams.stimulusSamplingIntervalInSeconds, ...
@@ -28,11 +31,10 @@ if (isfield(temporalParams, 'addCRTrasterEffect')) && (temporalParams.addCRTrast
     rasterModulation = rasterModulation(1:numel(gaussianTemporalWindow)*rasterSamples);
     
     tmp = zeros(1,numel(gaussianTemporalWindow)*rasterSamples);
-    for i = 0:numel(gaussianTemporalWindow)*rasterSamples-1
-        tmp(i+1) = gaussianTemporalWindow(floor(i/rasterSamples)+1);
+    for i = 1:numel(gaussianTemporalWindow)*rasterSamples-1
+        tmp(i) = gaussianTemporalWindow(floor((i-1)/rasterSamples)+1);
     end
     gaussianTemporalWindow = tmp;
-    
     sampleTimes = linspace(sampleTimes(1), sampleTimes(end), numel(gaussianTemporalWindow));
 %     figure(2);
 %     plot(sampleTimes, gaussianTemporalWindow);

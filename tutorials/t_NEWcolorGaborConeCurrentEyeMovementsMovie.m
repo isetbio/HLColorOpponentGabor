@@ -100,7 +100,7 @@ for stimFrameIndex = 1:stimulusFramesNum
     % Apply CRT raster modulation
     if (~isempty(rasterModulation))
         gaborParams = theBaseGaborParams;
-        gaborParams.contrast = gaborParams.contrast * rasterModulation(stimFrameIndex);
+        gaborParams.contrast = gaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
         gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
     end
     
@@ -126,11 +126,11 @@ end
 
 %% Compute photocurrent sequence
 fprintf('Computing photocurrent sequence ...\n');
-coneIsomerizationRate = coneIsomerizationSequence/mosaicParams.integrationTimeInSeconds;
+coneIsomerizationRate = coneIsomerizationSequence/theMosaic.integrationTime;
 photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
 
 %% Update theMosaic params
-theMosaic.absorptions = coneIsomerizationRate;
+theMosaic.absorptions = coneIsomerizationSequence;
 theMosaic.current = photocurrentSequence;
 theMosaic.emPositions = eyeMovementSequence;
 timeAxis = (1:size(photocurrentSequence,3))*mosaicParams.timeStepInSeconds;
