@@ -7,7 +7,7 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
 %
 
     % Retrieve isomerization rate, photocurrent, and eye movement sequence
-    isomerizationRate = responseInstance.theMosaicIsomerizationRates/responseInstance.theMosaic.integrationTime;
+    isomerizationRate = responseInstance.theMosaicIsomerizations/responseInstance.theMosaic.integrationTime;
     photocurrentSequence = responseInstance.theMosaicPhotoCurrents;
     eyeMovementSequence = responseInstance.theMosaicEyeMovements;
     
@@ -16,7 +16,7 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
     
     % Determine plotting ranges
     isomerizationRateRange = [min(isomerizationRate(:)) max(isomerizationRate(:))];
-    photocurrentRange = [min(photocurrentSequence(:)) max(photocurrentSequence(:))];
+    photocurrentRange = prctile(photocurrentSequence(:), [1 99]);
     
     % Compute mosaic spatial axes
     coneRows = size(isomerizationRate,1);
@@ -32,7 +32,7 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
     set(hFig, 'Name', sprintf('Trial %d / %d', iTrial, trialsNum), 'Position', [10 10 1070 520], 'Color', [1 1 1]);
     clf; colormap(bone(1024));
 
-    subplot('Position', [0.01 0.03 0.45 0.94]);
+    subplot('Position', [0.01 0.03 0.43 0.94]);
     imagesc(mosaicXaxis, mosaicYaxis, isomerizationRate(:,:,timeStepVisualized));
     hold on;
     plot(eyeMovementSequence(:,1), -eyeMovementSequence(:,2), 'w-', 'Color', [1.0 0.5 0.5], 'LineWidth', 4.0);
@@ -49,7 +49,7 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
     hCbar.Color = [0.2 0.2 0.2];
     title(sprintf('isomerization map (t: %2.2f ms)', timeAxis(timeStepVisualized)*1000), 'FontSize', 16, 'FontName', 'Menlo');
 
-    subplot('Position', [0.52 0.03 0.45 0.94]);
+    subplot('Position', [0.53 0.03 0.43 0.94]);
     imagesc(photocurrentSequence(:,:,timeStepVisualized));
     % xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
     axis 'image'; axis 'xy'

@@ -56,9 +56,9 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1/3 1/3 1/3];
+mosaicParams.LMSRatio = [1 0 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
-mosaicParams.integrationTimeInSeconds = 50/1000;
+mosaicParams.integrationTimeInSeconds = 5/1000;
 mosaicParams.photonNoise = false;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
@@ -69,26 +69,16 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 %% Create the cone mosaic
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
-% Close parallel pool if it is open
-p = gcp('nocreate'); 
-if ~isempty(p)
-    delete(p)
-end
-
 % Generate response instances for a number of trials
-trialsNum = 10;
+trialsNum = 2;
 
 % Compute the trial data using the default parallel pool
 for iTrial = 1:trialsNum
-    % Get worker ID
-    task = getCurrentTask();
-    %fprintf('\nWorker %d: Computing response instance %d/%d ... ', task.ID, iTrial, trialsNum);
-    pause(0.1);
-    
+    fprintf('Computing responses for trial %d/%d\n', iTrial, trialsNum);
     % compute and accumulate the response instances, one for each trial
     responseInstances{iTrial} = colorDetectResponseInstanceConstruct(simulationTimeStep, ...
             gaborParams, temporalParams, oiParams, mosaicParams, theOI, theMosaic);
-    fprintf('Completed');
+    
 end
 
 saveData = false;
@@ -105,7 +95,7 @@ fprintf('\nVisualizing responses ...\n');
 for iTrial = 1:trialsNum
     % Visualize this response instance
     figHandle = visualizeResponseInstance(responseInstances{iTrial}, iTrial, trialsNum);
-    figFileNames{iTrial} = sprintf('responseInsrance_%d.pdf',iTrial);
+    figFileNames{iTrial} = sprintf('responseInstance_%d.pdf',iTrial);
     if (exportToPDF)
         NicePlot.exportFigToPDF(figFileNames{iTrial}, figHandle, 300);
     end
