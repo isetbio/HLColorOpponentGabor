@@ -95,7 +95,7 @@ end
 saveData = false;
 exportToPDF = true;
 
-% Save stimulus/response data
+% Save response instance data
 if (saveData)
     fileName = 'testData.mat';
     save(fileName, 'responseInstances', '-v7.3');
