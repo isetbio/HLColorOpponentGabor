@@ -30,7 +30,6 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
         hold off;
         axis 'image'; axis 'xy'
         xlabel(sprintf('%2.0f microns (%2.2f deg)', theMosaic.width*1e6, theMosaic.fov(1)), 'FontSize', 14, 'FontName', 'Menlo');
-        axis 'image'
         set(gca, 'CLim', isomerizationRange, 'XTick', [], 'YTick', []);
         hCbar = colorbar(); % 'Ticks', cbarStruct.ticks, 'TickLabels', cbarStruct.tickLabels);
         hCbar.Orientation = 'vertical'; 

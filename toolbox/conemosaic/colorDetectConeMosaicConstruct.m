@@ -39,12 +39,10 @@ if (isfield(mosaicParams, 'fieldOfViewDegs'))
 end
 
 if (isfield(mosaicParams, 'photonNoise'))
-    fprintf('setting photoNoise to %d\n', mosaicParams.photonNoise);
     theMosaic.noiseFlag = mosaicParams.photonNoise;
 end
 
 if (isfield(mosaicParams, 'osNoise'))
-    fprintf('setting oiNoise to %d\n', mosaicParams.osNoise);
     theMosaic.os.noiseFlag = mosaicParams.osNoise;
 end
 

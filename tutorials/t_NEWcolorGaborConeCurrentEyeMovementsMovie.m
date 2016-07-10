@@ -61,19 +61,19 @@ mosaicParams.photonNoise = false;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
-%% Create stimulus temporal window
-[stimulusSampleTimes, gaussianTemporalWindow, rasterModulation] = gaussianTemporalWindowCreate(temporalParams);
-if (temporalParams.addCRTrasterEffect)
-    temporalParams.stimulusSamplingIntervalInSeconds = stimulusSampleTimes(2)-stimulusSampleTimes(1);
-end
-stimulusFramesNum = length(stimulusSampleTimes);
-
 
 %% Create the optics
 theOI = colorDetectOpticalImageConstruct(oiParams);
 
 %% Create the cone mosaic
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
+
+%% Create stimulus temporal window
+[stimulusSampleTimes, gaussianTemporalWindow, rasterModulation] = gaussianTemporalWindowCreate(temporalParams);
+if (temporalParams.addCRTrasterEffect)
+    temporalParams.stimulusSamplingIntervalInSeconds = stimulusSampleTimes(2)-stimulusSampleTimes(1);
+end
+stimulusFramesNum = length(stimulusSampleTimes);
 
 %% Generate eye movements for the entire stimulus duration
 eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;

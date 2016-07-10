@@ -24,10 +24,7 @@ if (isfield(temporalParams, 'addCRTrasterEffect')) && (temporalParams.addCRTrast
     rasterSamples = numel(phosphorFunction.timeInSeconds);
     raster = zeros(1,numel(gaussianTemporalWindow)*rasterSamples);
     raster(1,1:rasterSamples:end) = gaussianTemporalWindow*0+1;
-    max(phosphorFunction.activation)
     rasterModulation = conv(raster, phosphorFunction.activation);
-    max(rasterModulation)
-    pause
     rasterModulation = rasterModulation(1:numel(gaussianTemporalWindow)*rasterSamples);
     
     tmp = zeros(1,numel(gaussianTemporalWindow)*rasterSamples);
