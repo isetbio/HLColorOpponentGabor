@@ -3,7 +3,7 @@
 %  Show how to generate a movie with the cone absoprtions and photocurrent
 %  to a stimulus, with eye movements and optional CRT raster effects
 %
-%  7/9/16  ncp Wrote it.
+%  7/9/16  npc Wrote it.
 
 %% Initialize
 ieInit; clear; close all;
@@ -14,10 +14,10 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 %% Define parameters of simulation
 %
 % The time step at which to compute eyeMovements and osResponses
-simulationTimeStep = 1/1000;
+simulationTimeStep = 5/1000;
 
 % Stimulus (gabor) params
-scaleF = 0.5;
+scaleF = 1.0;
 gaborParams.fieldOfViewDegs = 3*scaleF;
 gaborParams.gaussianFWHMDegs = 0.75*scaleF;
 gaborParams.cyclesPerDegree = 2/scaleF;
@@ -54,7 +54,7 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1 0 0/3];
+mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = false;

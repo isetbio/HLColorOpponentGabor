@@ -1,5 +1,5 @@
 function [sampleTimes, gaussianTemporalWindow, rasterModulation] = gaussianTemporalWindowCreate(temporalParams)
-% [sampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams)
+% [sampleTimes,gaussianTemporalWindow, , rasterModulation] = gaussianTemporalWindowCreate(temporalParams)
 %
 % Create a Gaussian temporal window.
 %

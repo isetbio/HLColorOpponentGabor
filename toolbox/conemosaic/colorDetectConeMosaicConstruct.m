@@ -8,10 +8,14 @@ function theMosaic = colorDetectConeMosaicConstruct(mosaicParams)
 %   mosaicParams.fieldOfViewDegs - field of view in degrees
 %   mosaicParams.LMSRatio - vector with three entries summing to one
 %                           proportion of L, M, and S cones in mosaic
-
+%
 % THESE ARE NOT YET IMPLEMENTED
 %   mosaicParams.macular -  true/false, include macular pigment?
 %   mosaicParams.osModel - 'Linear','Biophys', which outer segment model
+%
+%  7/9/16  npc, dhb  Wrote it.
+%
+
 
 
 % Create a coneMosaic object here. 
@@ -47,8 +51,6 @@ if (isfield(mosaicParams, 'osNoise'))
 end
 
 
-
-
 % Density of LMS cones
 if (isfield(mosaicParams, 'LMSRatio'))
     if (numel(mosaicParams.LMSRatio) == 3)
@@ -57,7 +59,3 @@ if (isfield(mosaicParams, 'LMSRatio'))
         theMosaic.spatialDensity = mosaicParams.LMSRatio(:);
     end
 end
-
-
-% We compute mean responses for each time and then generate lots of noisy
-% samples later.

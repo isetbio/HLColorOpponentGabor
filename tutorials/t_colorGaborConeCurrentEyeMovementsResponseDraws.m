@@ -4,7 +4,7 @@
 %
 %  See also t_coneGaborConeCurrentEyeMovementsMovie. 
 %
-%  7/9/16  ncp Wrote it.
+%  7/9/16  npc Wrote it.
 
 %% Initialize
 ieInit; clear; close all;
@@ -15,10 +15,10 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 %% Define parameters of simulation
 %
 % The time step at which to compute eyeMovements and osResponses
-simulationTimeStep = 1/1000;
+simulationTimeStep = 5/1000;
 
 % Stimulus (gabor) params
-scaleF = 0.5;
+scaleF = 1.0;
 gaborParams.fieldOfViewDegs = 3*scaleF;
 gaborParams.gaussianFWHMDegs = 0.75*scaleF;
 gaborParams.cyclesPerDegree = 2/scaleF;
@@ -96,11 +96,18 @@ stimulusConditionStruct = struct(...
     'temporalParams', temporalParams, ...
     'mosaicParams', mosaicParams ...
     );
-save(fileName, 'stimulusConditionStruct', 'responseInstances');
+save(fileName, 'stimulusConditionStruct', 'responseInstances', '-v7.3');
 
 fprintf('\nVisualizing responses ...\n');
 % Visualize the data
 for iTrial = 1:trialsNum
     % Visualize this response instance
-    visualizeResponseInstance(responseInstances{iTrial}, iTrial, trialsNum);
+    figHandle = visualizeResponseInstance(responseInstances{iTrial}, iTrial, trialsNum);
+    figFileNames{iTrial} = sprintf('responseInsrance_%d.pdf',iTrial);
+    NicePlot.exportFigToPDF(figFileNames{iTrial}, figHandle, 300);
 end
+
+% Export summary PDF
+summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
+fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
+NicePlot.combinePDFfilesInSinglePDF(figFileNames, summaryPDF);

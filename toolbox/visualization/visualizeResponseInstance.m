@@ -1,4 +1,11 @@
-function visualizeResponseInstance(responseInstance, iTrial, trialsNum)
+function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
+% hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
+% 
+% Visualize the central (in time) part of a response instance
+%
+%
+%  7/9/16  npc Wrote it.
+%
 
     % Determine ranges
     isomerizationRange = [min(responseInstance.coneIsomerizationRate(:)) max(responseInstance.coneIsomerizationRate(:))];

@@ -1,4 +1,14 @@
 function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, renderVideo)
+% visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, renderVideo)
+%
+% Visualize the time cource of a mosaic response and optionally generate a
+% video of it.
+%
+%
+%  7/9/16  npc Wrote it.
+%
+
+
     % Determine ranges
     isomerizationRange = [min(theMosaic.absorptions(:)) max(theMosaic.absorptions(:))];
     photocurrentRange = [min(theMosaic.current(:)) max(theMosaic.current(:))];

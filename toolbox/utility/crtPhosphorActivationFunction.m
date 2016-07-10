@@ -1,4 +1,11 @@
 function phosphorFunction = crtPhosphorActivationFunction(refreshRate, samplesPerRefreshCycle) 
+% phosphorFunction = crtPhosphorActivationFunction(refreshRate, samplesPerRefreshCycle) 
+%
+% Create a phoshor activarion function with sharp rise, shower decline
+%
+%  7/7/16  npc Wrote it.
+%
+
     alpha = 1.9; t_50 = 0.02/1000; n = 2;
     phosphorFunction.timeInSeconds = linspace(0,1.0/refreshRate, samplesPerRefreshCycle);
     phosphorFunction.activation = (phosphorFunction.timeInSeconds.^n)./(phosphorFunction.timeInSeconds.^(alpha*n) + t_50^(alpha*n));

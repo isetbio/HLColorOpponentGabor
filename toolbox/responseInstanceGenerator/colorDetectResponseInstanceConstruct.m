@@ -1,6 +1,13 @@
 function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic)
-    
-    % Inform user
+% responseInstance = colorDetectResponseInstanceConstruct(simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic)
+% 
+% Construct a response instance given the simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic
+%
+%
+%  7/9/16  npc Wrote it.
+%
+
+    % Inform user regarding the computation progress
     progressHandle = waitbar(0,'Starting computation ...');
         
     % Save base gabor params
@@ -52,11 +59,12 @@ function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeS
         end
     end % for stimFrameIndex
 
-    waitbar(0.95, progressHandle, sprintf('Computing photocurrent sequence'));
     % Compute photocurrent sequence
+    waitbar(0.95, progressHandle, sprintf('Computing photocurrent sequence'));
     responseInstance.coneIsomerizationRate = coneIsomerizationSequence/mosaicParams.integrationTimeInSeconds;
     responseInstance.photocurrentSequence = theMosaic.os.compute(responseInstance.coneIsomerizationRate,theMosaic.pattern);
     responseInstance.timeAxis = (1:size(responseInstance.photocurrentSequence,3))*mosaicParams.timeStepInSeconds;
     
+    % Close progress bar
     close(progressHandle);
 end
