@@ -53,7 +53,7 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1 0 0/3];
+mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = false;
@@ -67,18 +67,40 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 %% Create the cone mosaic
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
-% Generate response instances for a number of trials
-trialsNum = 10;
-for iTrial = 1:trialsNum
-    
-    fprintf('\nComputing response instance %d/%d ... ', iTrial, trialsNum);
-    tic
-    % compute the response instance
-    responseInstance{iTrial} = colorDetectResponseInstanceConstruct(simulationTimeStep, ...
-            gaborParams, temporalParams, mosaicParams, theOI, theMosaic);
-    fprintf('Completed in %2.2f seconds', toc);
-    
-    % Visualize this response instance
-    visualizeResponseInstance(responseInstance{iTrial});
+% Close parallel pool if it is open
+p = gcp('nocreate'); 
+if ~isempty(p)
+    delete(p)
 end
 
+% Generate response instances for a number of trials
+trialsNum = 10;
+
+% Compute the trial data using the default parallel pool
+parfor iTrial = 1:trialsNum
+    % Get worker ID
+    task = getCurrentTask();
+    fprintf('\nWorker %d: Computing response instance %d/%d ... ', task.ID, iTrial, trialsNum);
+    pause(0.1);
+    
+    % compute the response instance for this trial
+    responseInstances{iTrial} = colorDetectResponseInstanceConstruct(simulationTimeStep, ...
+            gaborParams, temporalParams, mosaicParams, theOI, theMosaic);
+    fprintf('Completed');
+end
+
+% Save data
+fileName = 'testData.mat';
+stimulusConditionStruct = struct(...
+    'gaborParams', gaborParams, ...
+    'temporalParams', temporalParams, ...
+    'mosaicParams', mosaicParams ...
+    );
+save(fileName, 'stimulusConditionStruct', 'responseInstances');
+
+fprintf('\nVisualizing responses ...\n');
+% Visualize the data
+for iTrial = 1:trialsNum
+    % Visualize this response instance
+    visualizeResponseInstance(responseInstances{iTrial}, iTrial, trialsNum);
+end

@@ -1,4 +1,4 @@
-function visualizeResponseInstance(responseInstance)
+function visualizeResponseInstance(responseInstance, iTrial, trialsNum)
 
     % Determine ranges
     isomerizationRange = [min(responseInstance.coneIsomerizationRate(:)) max(responseInstance.coneIsomerizationRate(:))];
@@ -11,8 +11,8 @@ function visualizeResponseInstance(responseInstance)
     totalTimeSteps = size(responseInstance.photocurrentSequence,3);
     timeStepVisualized = round(totalTimeSteps/2);
     
-    hFig = figure(); 
-    set(hFig, 'Position', [10 10 1070 520], 'Color', [1 1 1]);
+    hFig = figure(iTrial); 
+    set(hFig, 'Name', sprintf('Trial %d / %d', iTrial, trialsNum), 'Position', [10 10 1070 520], 'Color', [1 1 1]);
     clf; colormap(bone(1024));
 
     subplot('Position', [0.01 0.03 0.45 0.94]);
