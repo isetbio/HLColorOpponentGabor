@@ -85,11 +85,11 @@ testConeContrasts(:,1) = [0.10   0.10  0.00]';
 testConeContrasts(:,2) = [0.10  -0.10  0.00]';
 
 % Contrasts
-testContrasts = linspace(0.1, 1.0, 5);
+testContrasts = linspace(0.1, 1.0, 2);
 
 %% Define how many data instances to generate
-trainingInstances = 2;
-crossValidationInstances = 2;
+trainingInstances = 1;
+crossValidationInstances = 1;
 testingInstances = 1;
 trialsNum = trainingInstances + crossValidationInstances + testingInstances;
 
@@ -98,7 +98,7 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     gaborParams.coneContrasts = testConeContrasts(:,testChromaticDirectionIndex);
     for testContrastIndex = 1:numel(testContrasts)
         gaborParams.contrast = testContrasts(testContrastIndex);
-        stimulusLabel = sprintf('LMS %2.2f %2.2f %2.2f - Contrast %2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
+        stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
         theStimData{testChromaticDirectionIndex, testContrastIndex} = struct(...
                  'testContrast', gaborParams.contrast, ...
             'testConeContrasts', gaborParams.coneContrasts, ...
@@ -111,7 +111,7 @@ end % testChromaticDirectionIndex
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';
 gaborParams.contrast = 0;
-stimulusLabel = sprintf('LMS %2.2f %2.2f %2.2f - Contrast %2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
+stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
 theNoStimData = struct(...
                  'testContrast', gaborParams.contrast, ...
             'testConeContrasts', gaborParams.coneContrasts, ...
@@ -122,24 +122,25 @@ theNoStimData = struct(...
 % Save the data for use by the classifier preprocessing subroutine
 saveData = true;
 if (saveData)
-    fprintf('\nSaving data ...\n');
-    fileName = 'testData.mat';
+    dataDir = colorGaborDetectDataDir();
+    fprintf('\nSaving generated data in %s ...\n', dataDir);
+    fileName = fullfile(dataDir, 'testData.mat');
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
 % Visualize responses
-exportToPDF = false;
+exportToPDF = true;
 fprintf('\nVisualizing responses ...\n');
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
         stimulusLabel = theStimData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
-        s = theStimData{testChromaticDirectionIndex, testContrastIndex};
-        
+        s = theStimData{testChromaticDirectionIndex, testContrastIndex};  
         % Visualize training response instances only
         for iTrial = 1:trainingInstances
             figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum);
             if (exportToPDF)
-                figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = sprintf('%s_%d.pdf', stimulusLabel, iTrial);
+                figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
+                    fullfile(colorGaborDetectFiguresDir(),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
                 NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
             end
         end % iTrial
@@ -148,7 +149,7 @@ end
 
 % Export summary PDF with all responses
 if (exportToPDF)
-    summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
-    fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
+    summaryPDF = fullfile(colorGaborDetectFiguresDir(), 'AllInstances.pdf');
+    fprintf('Exporting a summary PDF with all response instances in %s\n', summaryPDF);
     NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
 end

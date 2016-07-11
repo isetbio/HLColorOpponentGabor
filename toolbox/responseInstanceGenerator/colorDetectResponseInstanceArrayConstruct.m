@@ -22,15 +22,14 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
     
     % Loop over our stimulus frames
     for stimFrameIndex = 1:stimulusFramesNum 
-        waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('%s\ncomputing optical image for frame #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
+        waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('stimulus label: %s\ncomputing optical image for frame #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
         
         % Modulate stimulus contrast
-        gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
+        gaborParams.contrast = theBaseGaborParams.contrast * gaussianTemporalWindow(stimFrameIndex);
         
         % Apply CRT raster modulation
         if (~isempty(rasterModulation))
-            gaborParams = theBaseGaborParams;
-            gaborParams.contrast = gaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
+            gaborParams.contrast = theBaseGaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
             gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
         end
         
@@ -43,7 +42,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
     
     % For each trial compute new eye movement path and obtain new response
     for iTrial = 1: nTrials
-        waitbar(0.5+0.5*iTrial/nTrials, progressHandle, sprintf('%s\ncomputing responses for trial %d/%d', stimulusLabel, iTrial, nTrials));
+        waitbar(0.5+0.5*iTrial/nTrials, progressHandle, sprintf('stimulus label: %s\ncomputing responses for trial %d/%d', stimulusLabel, iTrial, nTrials));
         
         % Generate eye movements for the entire stimulus duration of this trial
         eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;
@@ -56,7 +55,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
             eyeMovementIndices = (round((stimFrameIndex-1)*eyeMovementsPerStimFrame)+1 : round(stimFrameIndex*eyeMovementsPerStimFrame));
             theMosaic.emPositions = eyeMovementSequence(eyeMovementIndices,:);
         
-            % Compute isomerizations for the current frame
+            % Compute isomerizations only for the current frame
             frameIsomerizationSequence = theMosaic.compute(theFrameOI{stimFrameIndex},'currentFlag',false);
             if (stimFrameIndex==1)
                 coneIsomerizationSequence = frameIsomerizationSequence;
