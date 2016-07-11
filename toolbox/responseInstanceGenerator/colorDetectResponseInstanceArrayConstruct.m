@@ -22,7 +22,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
     
     % Loop over our stimulus frames
     for stimFrameIndex = 1:stimulusFramesNum 
-        waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('%s opt. image #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
+        waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('%s\nopt. image #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
         
         % Modulate stimulus contrast
         gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
@@ -69,11 +69,12 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         coneIsomerizationRate = coneIsomerizationSequence/theMosaic.integrationTime;
         photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
         
-        % accumulate data in cell array of structs
-        responseInstanceArray{iTrial} = struct(...
-            'theMosaicIsomerizations', coneIsomerizationSequence, ...
-             'theMosaicPhotoCurrents', photocurrentSequence, ...
-              'theMosaicEyeMovements', eyeMovementSequence ...
+        % Accumulate data in cell array of structs. Here we have to decice
+        % which part (spatial and temporal) of the responses to save
+        responseInstanceArray(iTrial) = struct(...
+            'theMosaicIsomerizations', single(coneIsomerizationSequence), ...
+             'theMosaicPhotoCurrents', single(photocurrentSequence), ...
+              'theMosaicEyeMovements', single(eyeMovementSequence) ...
         );
     end % iTrial
     

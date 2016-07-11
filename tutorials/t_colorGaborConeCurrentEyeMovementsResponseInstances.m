@@ -15,7 +15,7 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 %% Define parameters of simulation
 %
 % The time step at which to compute eyeMovements and osResponses
-simulationTimeStep = 5/1000;
+simulationTimeStep = 10/1000;
 
 % Stimulus (gabor) params
 scaleF = 1.0;
@@ -34,7 +34,7 @@ gaborParams.viewingDistance = 0.75;
 % Temporal modulation and stimulus sampling parameters
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
-temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
+temporalParams.stimulusDurationInSeconds = 4*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 
 % Optional CRT raster effects
@@ -67,7 +67,7 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 %% Create the cone mosaic
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
-%% Define conditions that we will examine
+%% Define stimulus set
 % Chromatic directions: L+M, L-M
 testConeContrasts(:,1) = [0.10   0.10  0.00]';
 testConeContrasts(:,2) = [0.10  -0.10  0.00]';
@@ -81,27 +81,39 @@ crossValidationInstances = 2;
 testingInstances = 1;
 trialsNum = trainingInstances + crossValidationInstances + testingInstances;
 
-%% Generate all the data
+%% Generate data for all the examined stimuli 
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     gaborParams.coneContrasts = testConeContrasts(:,testChromaticDirectionIndex);
     for testContrastIndex = 1:numel(testContrasts)
         gaborParams.contrast = testContrasts(testContrastIndex);
         stimulusLabel = sprintf('LMS=(%2.2f %2.2f %2.2f), C=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
-        theData{testChromaticDirectionIndex, testContrastIndex} = struct(...
+        theStimData{testChromaticDirectionIndex, testContrastIndex} = struct(...
                  'testContrast', gaborParams.contrast, ...
             'testConeContrasts', gaborParams.coneContrasts, ...
                 'stimulusLabel', stimulusLabel, ...
-            'responseInstances', colorDetectResponseInstanceArrayConstruct(stimulusLabel, trialsNum, ...
+        'responseInstanceArray', colorDetectResponseInstanceArrayConstruct(stimulusLabel, trialsNum, ...
                                          simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic));
     end % testContrastIndex
 end % testChromaticDirectionIndex
- 
 
+%% Generate data for the no stimulus condition
+gaborParams.coneContrasts = [0 0 0]';
+gaborParams.contrast = 0;
+stimulusLabel = sprintf('LMS=(%2.2f %2.2f %2.2f), C=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
+theNoStimData = struct(...
+                 'testContrast', gaborParams.contrast, ...
+            'testConeContrasts', gaborParams.coneContrasts, ...
+                'stimulusLabel', stimulusLabel, ...
+        'responseInstanceArray', colorDetectResponseInstanceArrayConstruct(stimulusLabel, trialsNum, ...
+                                         simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic));
+
+                                     
 % Save the data for use by the classifier preprocessing subroutine
-saveData = false;
+saveData = true;
 if (saveData)
+    fprintf('\nSaving data ...\n');
     fileName = 'testData.mat';
-    save(fileName, 'theData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
+    save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
 % Visualize responses
@@ -109,11 +121,12 @@ exportToPDF = false;
 fprintf('\nVisualizing responses ...\n');
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
-        stimulusLabel = theData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
-        responseInstances = theData{testChromaticDirectionIndex, testContrastIndex}.responseInstances;
+        stimulusLabel = theStimData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
+        s = theStimData{testChromaticDirectionIndex, testContrastIndex};
+        
         % Visualize training response instances only
         for iTrial = 1:trainingInstances
-            figHandle = visualizeResponseInstance(responseInstances{iTrial}, stimulusLabel, theMosaic, iTrial, trialsNum);
+            figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum);
             if (exportToPDF)
                 figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = sprintf('%s_%d.pdf', stimulusLabel, iTrial);
                 NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
