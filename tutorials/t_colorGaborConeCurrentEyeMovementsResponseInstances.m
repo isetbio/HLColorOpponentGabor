@@ -140,7 +140,7 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum);
             if (exportToPDF)
                 figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
-                    fullfile(colorGaborDetectFiguresDir(),sprintf('%s_%d.pdf', stimulusLabel, iTrial));
+                    fullfile(colorGaborDetectFiguresDir(),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
                 NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
             end
         end % iTrial
