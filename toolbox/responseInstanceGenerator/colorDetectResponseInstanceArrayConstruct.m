@@ -1,7 +1,7 @@
-function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, oiParams, mosaicParams, theOI, theMosaic)
-% responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic)
+function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic)
+% responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic)
 % 
-% Construct an array of nTrials response instances given the simulationTimeStep, gaborParams, temporalParams, mosaicParams, theOI, theMosaic
+% Construct an array of nTrials response instances given the simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic
 %
 %
 %  7/10/16  npc Wrote it.
@@ -72,8 +72,8 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         % accumulate data in cell array of structs
         responseInstanceArray{iTrial} = struct(...
             'theMosaicIsomerizations', coneIsomerizationSequence, ...
-            'theMosaicPhotoCurrents', photocurrentSequence, ...
-            'theMosaicEyeMovements', eyeMovementSequence ...
+             'theMosaicPhotoCurrents', photocurrentSequence, ...
+              'theMosaicEyeMovements', eyeMovementSequence ...
         );
     end % iTrial
     
@@ -82,7 +82,8 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
 end
 
 function progressHandle = generateProgressBar(initialMessage)
-    progressHandle = waitbar(0,initialMessage);
+    progressHandle = waitbar(0, '');
     titleHandle = get(findobj(progressHandle,'Type','axes'),'Title');
     set(titleHandle,'FontSize',12, 'FontName', 'Menlo');
+    waitbar(0, progressHandle, initialMessage);
 end
