@@ -56,7 +56,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
             eyeMovementIndices = (round((stimFrameIndex-1)*eyeMovementsPerStimFrame)+1 : round(stimFrameIndex*eyeMovementsPerStimFrame));
             theMosaic.emPositions = eyeMovementSequence(eyeMovementIndices,:);
         
-            % Compute isomerizations for the current frame
+            % Compute isomerizations only for the current frame
             frameIsomerizationSequence = theMosaic.compute(theFrameOI{stimFrameIndex},'currentFlag',false);
             if (stimFrameIndex==1)
                 coneIsomerizationSequence = frameIsomerizationSequence;

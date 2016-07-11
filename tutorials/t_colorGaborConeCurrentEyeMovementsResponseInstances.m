@@ -122,13 +122,14 @@ theNoStimData = struct(...
 % Save the data for use by the classifier preprocessing subroutine
 saveData = true;
 if (saveData)
-    fprintf('\nSaving data ...\n');
-    fileName = 'testData.mat';
+    dataDir = colorGaborDetectDataDir();
+    fprintf('\nSaving generated data in %s ...\n', dataDir);
+    fileName = fufile(dataDir, 'testData.mat');
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
 % Visualize responses
-exportToPDF = false;
+exportToPDF = true;
 fprintf('\nVisualizing responses ...\n');
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
@@ -139,7 +140,8 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
         for iTrial = 1:trainingInstances
             figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum);
             if (exportToPDF)
-                figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = sprintf('%s_%d.pdf', stimulusLabel, iTrial);
+                figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
+                    fullfile(colorGaborDetectFiguresDir(),sprintf('%s_%d.pdf', stimulusLabel, iTrial));
                 NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
             end
         end % iTrial
@@ -148,7 +150,7 @@ end
 
 % Export summary PDF with all responses
 if (exportToPDF)
-    summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
+    summaryPDF = fullfile(colorGaborDetectFiguresDir(), 'AllInstances.pdf');
     fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
     NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
 end
