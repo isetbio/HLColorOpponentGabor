@@ -86,7 +86,7 @@ testConeContrasts(:,1) = [0.5   0.5  0.5]';
 %testConeContrasts(:,2) = [0.50   0.50  0.00]';
 
 % Contrasts
-testContrasts =  linspace(0.1, 1.0, 5);
+testContrasts =  linspace(0.01, 0.1, 10);
 
 %% Define how many time bins of the response to keep for classification
 milliSecondsToInclude = 100;
@@ -96,7 +96,7 @@ milliSecondsToInclude = 100;
 trainingInstances = 5;
 crossValidationInstances = 5;
 testingInstances = 5;
-trialsNum = trainingInstances + crossValidationInstances + testingInstances;
+trialsNum = 100; % trainingInstances + crossValidationInstances + testingInstances;
 
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';
@@ -135,28 +135,31 @@ if (saveData)
 end
 
 % Visualize responses
+visualizeResponses = false;
 exportToPDF = false;
-renderVideo = true;
-fprintf('\nVisualizing responses ...\n');
-for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
-    for testContrastIndex = 1:numel(testContrasts)
-        stimulusLabel = theStimData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
-        s = theStimData{testChromaticDirectionIndex, testContrastIndex};  
-        % Visualize training response instances only
-        for iTrial = 1:trainingInstances
-            figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum, renderVideo);
-            if (exportToPDF)
-                figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
-                    fullfile(colorGaborDetectFiguresDir(),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
-                NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
-            end
-        end % iTrial
+renderVideo = false;
+if (visualizeResponses)
+    fprintf('\nVisualizing responses ...\n');
+    for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
+        for testContrastIndex = 1:numel(testContrasts)
+            stimulusLabel = theStimData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
+            s = theStimData{testChromaticDirectionIndex, testContrastIndex};  
+            % Visualize training response instances only
+            for iTrial = 1:trainingInstances
+                figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum, renderVideo);
+                if (exportToPDF)
+                    figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
+                        fullfile(colorGaborDetectFiguresDir(),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
+                    NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
+                end
+            end % iTrial
+        end
     end
-end
 
-% Export summary PDF with all responses
-if (exportToPDF)
-    summaryPDF = fullfile(colorGaborDetectFiguresDir(), 'AllInstances.pdf');
-    fprintf('Exporting a summary PDF with all response instances in %s\n', summaryPDF);
-    NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
+    % Export summary PDF with all responses
+    if (exportToPDF)
+        summaryPDF = fullfile(colorGaborDetectFiguresDir(), 'AllInstances.pdf');
+        fprintf('Exporting a summary PDF with all response instances in %s\n', summaryPDF);
+        NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
+    end
 end
