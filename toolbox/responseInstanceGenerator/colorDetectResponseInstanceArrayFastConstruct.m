@@ -46,11 +46,6 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
         
         % Compute the optical image for the current frame
         theOI = oiCompute(theOI, theScene);
-        figure(1); 
-        subplot(1,2,1);
-        imagesc(sceneGet(theScene, 'RGB')); axis 'image'; title('Scene');
-        subplot(1,2,2);
-        imagesc(oiGet(theOI, 'RGB')); axis 'image'; title('oi');drawnow;
         
         % Compute noise-free isomerizations at each cone location for the current frame
         theFrameFullMosaicIsomerizatios{stimFrameIndex} = theLargerMosaic.computeSingleFrame(theOI,'FullLMS',true);

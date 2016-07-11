@@ -66,7 +66,7 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1 0 0];
+mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = false;
@@ -81,33 +81,33 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
 %% Define stimulus set
 % Chromatic directions: L+M, L-M
-testConeContrasts(:,1) = [0.05   0.05  0.00]';
+testConeContrasts(:,1) = [0.5   0.5  0.5]';
 %testConeContrasts(:,1) = [0.20   0.20  0.00]';
 %testConeContrasts(:,2) = [0.50   0.50  0.00]';
 
 % Contrasts
-testContrasts = 1.0; % linspace(0.1, 1.0, 2);
+testContrasts =  linspace(0.1, 1.0, 5);
 
 %% Define how many time bins of the response to keep for classification
-millisecondsToKeep = 100;
+milliSecondsToInclude = 100;
 
 
 %% Define how many data instances to generate
-trainingInstances = 10;
-crossValidationInstances = 0;
-testingInstances = 0;
+trainingInstances = 5;
+crossValidationInstances = 5;
+testingInstances = 5;
 trialsNum = trainingInstances + crossValidationInstances + testingInstances;
 
 %% Generate data for the no stimulus condition
-% gaborParams.coneContrasts = [0 0 0]';
-% gaborParams.contrast = 0;
-% stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
-% theNoStimData = struct(...
-%                  'testContrast', gaborParams.contrast, ...
-%             'testConeContrasts', gaborParams.coneContrasts, ...
-%                 'stimulusLabel', stimulusLabel, ...
-%         'responseInstanceArray', colorDetectResponseInstanceArrayConstruct(stimulusLabel, trialsNum, ...
-%                                          simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic));
+gaborParams.coneContrasts = [0 0 0]';
+gaborParams.contrast = 0;
+stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
+theNoStimData = struct(...
+                 'testContrast', gaborParams.contrast, ...
+            'testConeContrasts', gaborParams.coneContrasts, ...
+                'stimulusLabel', stimulusLabel, ...
+        'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, simulationTimeStep, ...
+                                         milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
                                      
 %% Generate data for all the examined stimuli 
 tic
@@ -121,7 +121,7 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             'testConeContrasts', gaborParams.coneContrasts, ...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, ...
-                                         simulationTimeStep, millisecondsToKeep, gaborParams, temporalParams, theOI, theMosaic));
+                                         simulationTimeStep, millisecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
     end % testContrastIndex
 end % testChromaticDirectionIndex
 toc
@@ -130,7 +130,7 @@ toc
 
                                      
 % Save the data for use by the classifier preprocessing subroutine
-saveData = false;
+saveData = true;
 if (saveData)
     dataDir = colorGaborDetectDataDir();
     fprintf('\nSaving generated data in %s ...\n', dataDir);
