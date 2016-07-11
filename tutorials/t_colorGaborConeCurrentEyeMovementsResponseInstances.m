@@ -86,7 +86,7 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     gaborParams.coneContrasts = testConeContrasts(:,testChromaticDirectionIndex);
     for testContrastIndex = 1:numel(testContrasts)
         gaborParams.contrast = testContrasts(testContrastIndex);
-        stimulusLabel = sprintf('LMS=(%2.2f %2.2f %2.2f), C=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
+        stimulusLabel = sprintf('LMS=(%2.2f %2.2f %2.2f), contrast=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
         theStimData{testChromaticDirectionIndex, testContrastIndex} = struct(...
                  'testContrast', gaborParams.contrast, ...
             'testConeContrasts', gaborParams.coneContrasts, ...
@@ -139,5 +139,5 @@ end
 if (exportToPDF)
     summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
     fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
-    NicePlot.combinePDFfilesInSinglePDF(figFileNames{:}, summaryPDF);
+    NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
 end

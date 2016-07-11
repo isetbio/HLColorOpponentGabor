@@ -22,7 +22,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
     
     % Loop over our stimulus frames
     for stimFrameIndex = 1:stimulusFramesNum 
-        waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('%s\nopt. image #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
+        waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('%s\ncomputing optical image for frame #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
         
         % Modulate stimulus contrast
         gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
@@ -43,7 +43,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
     
     % For each trial compute new eye movement path and obtain new response
     for iTrial = 1: nTrials
-        waitbar(0.5+0.5*iTrial/nTrials, progressHandle, sprintf('Computing responses for trial %d/%d', iTrial, nTrials));
+        waitbar(0.5+0.5*iTrial/nTrials, progressHandle, sprintf('%s\ncomputing responses for trial %d/%d', stimulusLabel, iTrial, nTrials));
         
         % Generate eye movements for the entire stimulus duration of this trial
         eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;
@@ -69,8 +69,9 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         coneIsomerizationRate = coneIsomerizationSequence/theMosaic.integrationTime;
         photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
         
-        % Accumulate data in cell array of structs. Here we have to decice
-        % which part (spatial and temporal) of the responses to save
+        % Accumulate data in cell array of structs. Here we have to decide
+        % which part (spatial and temporal) of the responses to keep for
+        % classification
         responseInstanceArray(iTrial) = struct(...
             'theMosaicIsomerizations', single(coneIsomerizationSequence), ...
              'theMosaicPhotoCurrents', single(photocurrentSequence), ...

@@ -47,7 +47,7 @@ function hFig = visualizeResponseInstance(responseInstance, responseLabel, theMo
     hCbar.FontSize = 14; 
     hCbar.FontName = 'Menlo'; 
     hCbar.Color = [0.2 0.2 0.2];
-    title(sprintf('isomerization map (t: %2.2f ms)', timeAxis(timeStepVisualized)*1000), 'FontSize', 16, 'FontName', 'Menlo');
+    title(sprintf('%s\nisomerization rate map (t=%2.2f ms)', responseLabel, timeAxis(timeStepVisualized)*1000), 'FontSize', 16, 'FontName', 'Menlo');
 
     subplot('Position', [0.53 0.03 0.43 0.94]);
     imagesc(photocurrentSequence(:,:,timeStepVisualized));
@@ -60,6 +60,6 @@ function hFig = visualizeResponseInstance(responseInstance, responseLabel, theMo
     hCbar.FontSize = 14; 
     hCbar.FontName = 'Menlo'; 
     hCbar.Color = [0.2 0.2 0.2];
-    title(sprintf('photocurrent map (t: %2.2f ms)', timeAxis(timeStepVisualized)*1000), 'FontSize', 16, 'FontName', 'Menlo');
+    title(sprintf('%s\nphotocurrent map (t=%2.2f ms)', responseLabel, timeAxis(timeStepVisualized)*1000), 'FontSize', 16, 'FontName', 'Menlo');
     drawnow;
 end
