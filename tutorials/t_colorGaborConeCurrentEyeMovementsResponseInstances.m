@@ -110,7 +110,6 @@ theNoStimData = struct(...
                                          milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
                                      
 %% Generate data for all the examined stimuli 
-tic
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     gaborParams.coneContrasts = testConeContrasts(:,testChromaticDirectionIndex);
     for testContrastIndex = 1:numel(testContrasts)
@@ -121,14 +120,11 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             'testConeContrasts', gaborParams.coneContrasts, ...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, ...
-                                         simulationTimeStep, millisecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
+                                         simulationTimeStep, milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
     end % testContrastIndex
 end % testChromaticDirectionIndex
-toc
 
-
-
-                                     
+                                 
 % Save the data for use by the classifier preprocessing subroutine
 saveData = true;
 if (saveData)
