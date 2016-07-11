@@ -1,8 +1,9 @@
-function figureDir = colorGaborDetectFiguresDir()
+function theDir = colorGaborDetectFiguresDir()
+    subDir = 'figures';
     [p,~] = fileparts(which(mfilename()));
-    figureDir = fullfile(p(1:strfind(p,'IBIOColorDetect')+numel('IBIOColorDetect')-1), 'figures');
-    if (~exist(videoDir, 'dir'))
-        fprintf('Creating %s directory on your disk.\n', figureDir);
-        mkdir(videoDir)
+    theDir = fullfile(p(1:strfind(p,'IBIOColorDetect')+numel('IBIOColorDetect')-1), subDir);
+    if (~exist(theDir, 'dir'))
+        fprintf('Creating %s directory on your disk.\n', theDir);
+        mkdir(theDir);
     end
 end
