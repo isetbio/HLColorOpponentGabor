@@ -24,10 +24,8 @@ gaborParams.gaussianFWHMDegs = 0.75*scaleF;
 gaborParams.cyclesPerDegree = 2/scaleF;
 gaborParams.row = 128;
 gaborParams.col = 128;
-gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.coneContrasts = [0.5 0.5 0.5]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.leakageLum = 2.0;
 gaborParams.monitorFile = 'CRT-HP';
@@ -56,7 +54,7 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1 0 0];
+mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = true;
@@ -69,35 +67,57 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 %% Create the cone mosaic
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
-% Generate response instances for a number of trials
-trialsNum = 1;
+% Conditions to examine
+% Chromatic directions: L+M, L-M
+testConeContrasts(:,1) = [0.10   0.10  0.00]';
+testConeContrasts(:,2) = [0.10  -0.10  0.00]';
 
-% Compute the trial data using the default parallel pool
-for iTrial = 1:trialsNum
-    fprintf('Computing responses for trial %d/%d\n', iTrial, trialsNum);
-    % compute and accumulate the response instances, one for each trial
-    responseInstances{iTrial} = colorDetectResponseInstanceConstruct(simulationTimeStep, ...
-            gaborParams, temporalParams, oiParams, mosaicParams, theOI, theMosaic);
-    
-end
+% Contrasts
+testContrasts = linspace(0.1, 1.0, 10);
 
+% Data instances to generate
+trainingInstances = 2;
+crossValidationInstances = 2;
+testingInstances = 1;
+trialsNum = trainingInstances + crossValidationInstances + testingInstances;
+
+for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
+    gaborParams.coneContrasts = testConeContrasts(:,testChromaticDirectionIndex);
+    for testContrastIndex = 1:numel(testContrasts)
+        gaborParams.contrast = testContrasts(testContrastIndex);
+        stimulusLabel = sprintf('LMS=(%2.2f %2.2f %2.2f), C=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
+        theData{testChromaticDirectionIndex, testContrastIndex} = struct(...
+            'testContrast', gaborParams.contrast, ...
+            'testConeContrasts',  gaborParams.coneContrasts, ...
+            'stimulusLabel', stimulusLabel, ...
+            'responseInstances', colorDetectResponseInstanceArrayConstruct(stimulusLabel, trialsNum, ...
+                    simulationTimeStep, gaborParams, temporalParams, oiParams, mosaicParams, theOI, theMosaic));
+    end % testContrastIndex
+end % testChromaticDirectionIndex
+ 
 saveData = false;
-exportToPDF = true;
-
 % Save response instance data
 if (saveData)
     fileName = 'testData.mat';
-    save(fileName, 'responseInstances', '-v7.3');
+    save(fileName, 'theData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
 % Visualize responses
+exportToPDF = false;
+
 fprintf('\nVisualizing responses ...\n');
-for iTrial = 1:trialsNum
-    % Visualize this response instance
-    figHandle = visualizeResponseInstance(responseInstances{iTrial}, iTrial, trialsNum);
-    figFileNames{iTrial} = sprintf('responseInstance_%d.pdf',iTrial);
-    if (exportToPDF)
-        NicePlot.exportFigToPDF(figFileNames{iTrial}, figHandle, 300);
+for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
+    for testContrastIndex = 1:numel(testContrasts)
+        stimulusLabel = theData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
+        responseInstances = theData{testChromaticDirectionIndex, testContrastIndex}.responseInstances;
+        % Visualize training response instances only
+        for iTrial = 1:trainingInstances
+            figHandle = visualizeResponseInstance(responseInstance, stimulusLabel, theMosaic, iTrial, trialsNum);
+            if (exportToPDF)
+                figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = sprintf('%s_%d.pdf', stimulusLabel, iTrial);
+                NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
+            end
+        end % iTrial
     end
 end
 
@@ -105,5 +125,5 @@ end
 if (exportToPDF)
     summaryPDF = fullfile(pwd(), 'AllInstances.pdf');
     fprintf('Exported a summary PDF with all response instances in %s\n', summaryPDF);
-    NicePlot.combinePDFfilesInSinglePDF(figFileNames, summaryPDF);
+    NicePlot.combinePDFfilesInSinglePDF(figFileNames{:}, summaryPDF);
 end

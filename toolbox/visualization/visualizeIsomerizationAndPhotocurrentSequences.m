@@ -14,8 +14,8 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
     eyeMovementSequence = theMosaic.emPositions;
     
     % Determine ranges for plotting
-    isomerizationRateRange = [4500 10500 ]; % prctile(isomerizationRate(:), [1 99])
-    photocurrentRange =  [-75 -55]; % prctile(photocurrent(:), [1 99]);
+    isomerizationRateRange = prctile(isomerizationRate(:),99) + [-6000 0];      % [4500 10500]; % prctile(isomerizationRate(:), [1 99])
+    photocurrentRange =  prctile(photocurrent(:), 1) + [0 20];                  % [-75 -55];    % prctile(photocurrent(:), [1 99]);
     
     hFig = figure(1); 
     set(hFig, 'Position', [10 10 1070 520], 'Color', [1 1 1]);

@@ -95,12 +95,11 @@ for stimFrameIndex = 1:stimulusFramesNum
     fprintf('Computing isomerizations for frame %d of %d\n', stimFrameIndex, stimulusFramesNum);
     
     % Modulate stimulus contrast
-    gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
+    gaborParams.contrast = theBaseGaborParams.contrast * gaussianTemporalWindow(stimFrameIndex);
     
     % Apply CRT raster modulation
     if (~isempty(rasterModulation))
-        gaborParams = theBaseGaborParams;
-        gaborParams.contrast = gaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
+        gaborParams.contrast = theBaseGaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
         gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
     end
     

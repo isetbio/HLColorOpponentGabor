@@ -31,13 +31,12 @@ function responseInstance = colorDetectResponseInstanceConstruct(simulationTimeS
         waitbar(0.9*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('Computing isomerizations for frame %d', stimFrameIndex));
         
         % Modulate stimulus contrast
-        gaborParams.contrast = gaussianTemporalWindow(stimFrameIndex);
+        gaborParams.contrast = theBaseGaborParams.contrast * gaussianTemporalWindow(stimFrameIndex);
         
         % Apply CRT raster modulation
         if (~isempty(rasterModulation))
-            gaborParams = theBaseGaborParams;
-            gaborParams.contrast = gaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
-            gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3)*rasterModulation(stimFrameIndex);
+            gaborParams.contrast = theBaseGaborParams.contrast * gaussianTemporalWindow(stimFrameIndex) * rasterModulation(stimFrameIndex);
+            gaborParams.backgroundxyY(3) = gaborParams.leakageLum + theBaseGaborParams.backgroundxyY(3) * rasterModulation(stimFrameIndex);
         end
     
         % Create a scene for the current frame

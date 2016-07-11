@@ -1,5 +1,5 @@
-function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
-% hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
+function hFig = visualizeResponseInstance(responseInstance, responseLabel, theMosaic, iTrial, trialsNum)
+% hFig = visualizeResponseInstance(responseInstance, theMosaic, iTrial, trialsNum)
 % 
 % Visualize the central (in time) part of a response instance
 %
@@ -7,16 +7,16 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
 %
 
     % Retrieve isomerization rate, photocurrent, and eye movement sequence
-    isomerizationRate = responseInstance.theMosaicIsomerizations/responseInstance.theMosaic.integrationTime;
+    isomerizationRate = responseInstance.theMosaicIsomerizations/theMosaic.integrationTime;
     photocurrentSequence = responseInstance.theMosaicPhotoCurrents;
     eyeMovementSequence = responseInstance.theMosaicEyeMovements;
     
     % Compute response time axis
-    timeAxis = (1:size(photocurrentSequence,3))*responseInstance.mosaicParams.timeStepInSeconds;
+    timeAxis = (1:size(photocurrentSequence,3))*theMosaic.sampleTime;
     
     % Determine plotting ranges
-    isomerizationRateRange = [4500 10500 ]; % prctile(isomerizationRate(:), [1 99]);
-    photocurrentRange = [-75 -55]; % prctile(photocurrentSequence(:), [1 99]);
+    isomerizationRateRange = prctile(isomerizationRate(:),99) + [-6000 0];    % [4500 10500]; % prctile(isomerizationRate(:), [1 99])
+    photocurrentRange =  prctile(photocurrentSequence(:), 1) + [0 20];      % [-75 -55];    % prctile(photocurrent(:), [1 99]);
     
     % Compute mosaic spatial axes
     coneRows = size(isomerizationRate,1);
@@ -28,8 +28,8 @@ function hFig = visualizeResponseInstance(responseInstance, iTrial, trialsNum)
     totalTimeSteps = numel(timeAxis);
     timeStepVisualized = round(totalTimeSteps/2);
     
-    hFig = figure(iTrial); 
-    set(hFig, 'Name', sprintf('Trial %d / %d', iTrial, trialsNum), 'Position', [10 10 1070 520], 'Color', [1 1 1]);
+    hFig = figure(10); 
+    set(hFig, 'Name', sprintf('%s [Trial %d / %d]', responseLabel, iTrial, trialsNum), 'Position', [10 10 1070 520], 'Color', [1 1 1]);
     clf; colormap(bone(1024));
 
     subplot('Position', [0.01 0.03 0.43 0.94]);
