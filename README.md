@@ -6,7 +6,7 @@ The place to get started is with the tutorials.  These are designed to build up 
 
 ## Tutorial List
 
-t_colorGaborScene - Shows how to make an isetbio scene representing a colored Gabor pattern presented on a calibrated CRT monitor.  This is the basic stimulus whose detection threshold we are modeling in this project.  The code illustrated in this tutorial is encapsulated in function colorGaborSceneCreate.
+### t_colorGaborScene - Shows how to make an isetbio scene representing a colored Gabor pattern presented on a calibrated CRT monitor.  This is the basic stimulus whose detection threshold we are modeling in this project.  The code illustrated in this tutorial is encapsulated in function colorGaborSceneCreate.
 
 t_colorGaborConeAbsorptionMovie - Shows how to take a temporally windowed color Gabor stimulus (Gaussian window) and compute a movie of the cone mosaic isomerizations at each time sampling point.  This relies on function colorGaborSceneCreate.
 
