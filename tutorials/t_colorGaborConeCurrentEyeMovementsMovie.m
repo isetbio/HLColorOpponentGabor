@@ -1,7 +1,13 @@
 %% t_coneGaborConeCurrentEyeMovementsMovie
 %
-%  Show how to generate a movie with the cone absoprtions and photocurrent
-%  to a stimulus, with eye movements and optional CRT raster effects
+% Show how to generate a movie with the cone absoprtions and photocurrent
+% to a stimulus, with eye movements and optional CRT raster effects.
+%
+% The ideas in this tutorial are encapsulated in expanded form
+% in the routine
+%   colorDetectResponseInstanceArrayConstruct
+% whose use is demonstrated in the tutorial
+%   t_colorGaborConeCurrentEyeMovementsResponseInstances.
 %
 %  7/9/16  npc Wrote it.
 

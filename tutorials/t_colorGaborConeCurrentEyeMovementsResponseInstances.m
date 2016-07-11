@@ -1,10 +1,13 @@
 %% t_colorGaborConeCurrentEyeMovementsResponseInstances
 %
-%  Show how to generate a number of response instances for a given stimulus condition.
+% Show how to generate a number of response instances for a given stimulus condition.
+% This tutorial relies on routine
+%   colorDetectResponseInstanceArrayConstruct
+% which does most of the hard work.  The code underlying colorDetectResponseInstanceArrayConstruct
+% itself is demonstrated in tutorial 
+%   t_colorGaborConeCurrentEyeMovementsMovie.
 %
-%  See also t_colorGaborConeCurrentEyeMovementsMovie. 
-%
-%  7/9/16  npc Wrote it.
+% 7/9/16  npc Wrote it.
 
 %% Initialize
 ieInit; clear; close all;
@@ -37,9 +40,18 @@ temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 4*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 
-% Optional CRT raster effects
+% Optional CRT raster effects.
+% 
+% The underlying routine that generates temporal samples 
+% can simulate the fact that CRTs produce an impulse during
+% each frame, although this simulation works on a frame basis
+% not on a pixel-by-pixel basis.  
+% 
+% The parameer rasterSamples is the number
+% of raster samples generated per CRT refresh
+% interval.
 temporalParams.addCRTrasterEffect = false;
-temporalParams.rasterSamples = 5;    % generate this many raster samples / stimulus refresh interval
+temporalParams.rasterSamples = 5; 
 if (temporalParams.addCRTrasterEffect)
     simulationTimeStep = simulationTimeStep/temporalParams.rasterSamples;
 end
@@ -106,7 +118,6 @@ theNoStimData = struct(...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayConstruct(stimulusLabel, trialsNum, ...
                                          simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic));
-
                                      
 % Save the data for use by the classifier preprocessing subroutine
 saveData = true;
