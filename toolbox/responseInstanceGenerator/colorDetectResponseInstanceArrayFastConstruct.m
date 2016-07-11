@@ -1,5 +1,5 @@
-function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic)
-% responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic)
+function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, nTrials, simulationTimeStep, milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic)
+% responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic)
 % 
 % Construct an array of nTrials response instances given the simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic
 %
@@ -20,6 +20,14 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
     end
     stimulusFramesNum = length(stimulusSampleTimes);
     
+    % extend sensor size
+    padRows = 32;
+    padCols = 32;
+            
+    theLargerMosaic = theMosaic.copy();
+    theLargerMosaic.pattern = zeros(theMosaic.rows+2*padRows, theMosaic.cols+2*padCols);
+    theLargerMosaic.noiseFlag = false;        
+            
     % Loop over our stimulus frames
     for stimFrameIndex = 1:stimulusFramesNum 
         waitbar(0.5*stimFrameIndex/stimulusFramesNum, progressHandle, sprintf('stimulus label: %s\ncomputing optical image for frame #%d/%d', stimulusLabel, stimFrameIndex, stimulusFramesNum));
@@ -34,11 +42,21 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         end
         
         % Create a scene for the current frame
-        theScene = colorGaborSceneCreate(gaborParams);
-    
-        % Compute the optical image
-        theFrameOI{stimFrameIndex} = oiCompute(theOI, theScene);
+        theScene = colorGaborSceneCreate(gaborParams);   
+        
+        % Compute the optical image for the current frame
+        theOI = oiCompute(theOI, theScene);
+        figure(1); 
+        subplot(1,2,1);
+        imagesc(sceneGet(theScene, 'RGB')); axis 'image'; title('Scene');
+        subplot(1,2,2);
+        imagesc(oiGet(theOI, 'RGB')); axis 'image'; title('oi');drawnow;
+        
+        % Compute noise-free isomerizations at each cone location for the current frame
+        theFrameFullMosaicIsomerizatios{stimFrameIndex} = theLargerMosaic.computeSingleFrame(theOI,'FullLMS',true);
     end % stimFrameIndex
+    
+    clear 'theLargerMosaic';
     
     % For each trial compute new eye movement path and obtain new response
     for iTrial = 1: nTrials
@@ -48,36 +66,44 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;
         eyeMovementsTotalNum = round(eyeMovementsPerStimFrame*stimulusFramesNum);
         eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);    
-        
+
         % Loop over our stimulus frames
         for stimFrameIndex = 1:stimulusFramesNum
             % Apply current frame eye movements to the mosaic
             eyeMovementIndices = (round((stimFrameIndex-1)*eyeMovementsPerStimFrame)+1 : round(stimFrameIndex*eyeMovementsPerStimFrame));
             theMosaic.emPositions = eyeMovementSequence(eyeMovementIndices,:);
         
-            % Compute isomerizations only for the current frame
-            frameIsomerizationSequence = theMosaic.compute(theFrameOI{stimFrameIndex},'currentFlag',false);
+            % Compute noise-free isomerizations for the current frame by applying eye movements during this stimulus frame
+            theFrameEyeMovementPathIsomerizations = ...
+                theMosaic.applyEMPath(theFrameFullMosaicIsomerizatios{stimFrameIndex}, ...
+                        'padRows',padRows,'padCols',padCols);
+            % Add noise
+            if (theMosaic.noiseFlag)
+                theFrameEyeMovementPathIsomerizations = theMosaic.photonNoise(theFrameEyeMovementPathIsomerizations,'newNoise', true);
+            end
+            
+            % Accumulate isomerizations by adding current frame isomerizations in the current eye movement path
             if (stimFrameIndex==1)
-                coneIsomerizationSequence = frameIsomerizationSequence;
+                coneIsomerizationSequence = theFrameEyeMovementPathIsomerizations;
             else
-                coneIsomerizationSequence = cat(3, coneIsomerizationSequence, frameIsomerizationSequence);
+                coneIsomerizationSequence = cat(3, coneIsomerizationSequence, theFrameEyeMovementPathIsomerizations);
             end
         end % stimFrameIndex
-
+        
         % Compute photocurrent sequence
         coneIsomerizationRate = coneIsomerizationSequence/theMosaic.integrationTime;
         photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
         timeAxis = (0:size(photocurrentSequence,3)-1)*theMosaic.sampleTime;
         timeAxis = timeAxis - timeAxis(end)/2;
-
+        
         % Only include the central response
         timeIndicesToKeep = find(abs(timeAxis)*1000 <= milliSecondsToInclude/2);
         
         % Accumulate data in cell array of structs. 
         responseInstanceArray(iTrial) = struct(...
-            'theMosaicIsomerizations', single(coneIsomerizationSequence(:,:,timeIndicesToKeep)), ...
-             'theMosaicPhotoCurrents', single(photocurrentSequence(:,:,timeIndicesToKeep)), ...
-              'theMosaicEyeMovements', single(eyeMovementSequence(timeIndicesToKeep,:)), ...
+            'theMosaicIsomerizations', coneIsomerizationSequence(:,:,timeIndicesToKeep), ...
+             'theMosaicPhotoCurrents', photocurrentSequence(:,:,timeIndicesToKeep), ...
+              'theMosaicEyeMovements', eyeMovementSequence(timeIndicesToKeep,:), ...
                            'timeAxis', timeAxis(timeIndicesToKeep) ...
         );
     end % iTrial
