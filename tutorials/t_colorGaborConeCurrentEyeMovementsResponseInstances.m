@@ -91,7 +91,7 @@ end
 testContrasts = linspace(0.05, 1, 20);
 
 %% Define how many time bins of the response to keep for classification
-milliSecondsToInclude = 100;
+milliSecondsToInclude = 50;
 
 
 %% Define how many data instances to generate
@@ -129,7 +129,7 @@ saveData = true;
 if (saveData)
     dataDir = colorGaborDetectDataDir();
     fprintf('\nSaving generated data in %s ...\n', dataDir);
-    fileName = fullfile(dataDir, 'testData.mat');
+    fileName = fullfile(dataDir, 'colorGaborDetectResponses.mat');
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
