@@ -7,6 +7,10 @@
 % itself is demonstrated in tutorial 
 %   t_colorGaborConeCurrentEyeMovementsMovie.
 %
+% This tutorial saves its output in a .mat file, which is then read in by
+%   t_colorGaborDetectFindThresholds
+% which shows how to use the data to find the thresholds.
+%
 % 7/9/16  npc Wrote it.
 
 %% Initialize
@@ -34,11 +38,16 @@ gaborParams.leakageLum = 2.0;
 gaborParams.monitorFile = 'OLED-Sony';  % 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 
-% Temporal modulation and stimulus sampling parameters
+% Temporal modulation and stimulus sampling parameters.
+%
+% The millisecondsToInclude field tells how many milliseconds of the
+% stimulus around the peak to include in data saved to pass to the
+% classification routines.
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 4*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
+temporalParams.millisecondsToInclude = 50;
 
 % Optional CRT raster effects.
 % 
@@ -90,10 +99,6 @@ end
 % Contrasts
 testContrasts = linspace(0.08, 1, 13);
 
-%% Define how many time bins of the response to keep for classification
-milliSecondsToInclude = 50;
-
-
 %% Define how many data instances to generate
 trialsNum =  1000;
 
@@ -106,7 +111,7 @@ theNoStimData = struct(...
             'testConeContrasts', gaborParams.coneContrasts, ...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, simulationTimeStep, ...
-                                         milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
+                                         temporalParams.millisecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
                                      
 %% Generate data for all the examined stimuli 
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
@@ -119,12 +124,11 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             'testConeContrasts', gaborParams.coneContrasts, ...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, ...
-                                         simulationTimeStep, milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
+                                         simulationTimeStep, temporalParams.millisecondsToInclude, gaborParams, temporalParams, theOI, theMosaic));
     end % testContrastIndex
 end % testChromaticDirectionIndex
-
                                  
-% Save the data for use by the classifier preprocessing subroutine
+%% Save the data for use by the classifier preprocessing subroutine
 saveData = true;
 if (saveData)
     dataDir = colorGaborDetectDataDir();
@@ -133,7 +137,7 @@ if (saveData)
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
-% Visualize responses
+%% Visualize responses
 visualizeResponses = false;
 exportToPDF = true;
 renderVideo = false;
