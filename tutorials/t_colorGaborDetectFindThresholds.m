@@ -65,12 +65,13 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             classes(nTrials+iTrial,1) = 1;
         end
         % Perform SVM classification for this stimulus vs the zero contrast stimulus
-        fprintf('Running SVM for chromatic direction %d, contrast %2.2f ...  ', testChromaticDirectionIndex , testContrasts(testContrastIndex));
+        fprintf('\tRunning SVM for chromatic direction %d, contrast %2.2f ...  ', testChromaticDirectionIndex , testContrasts(testContrastIndex));
         tic
         [percentCorrect(testChromaticDirectionIndex, testContrastIndex), stdErr(testChromaticDirectionIndex, testContrastIndex)] = classifyWithSVM(data,classes);
-        fprintf('Correct: %2.2f%% (SVM took  %2.2f minutes)\n', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100, toc/60);
+        fprintf('Correct: %2.2f%% (SVM took  %2.2f minutes)', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100, toc/60);
     end
 end
+printf('All done\n');
 
 %% Plot performances obtained.
 hFig = figure(1); clf;
