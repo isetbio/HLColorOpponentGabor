@@ -23,15 +23,15 @@ signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
 dataDir = colorGaborDetectDataDir();
-fprintf('\nLoading data  from %s ...\n', dataDir);
-fileName = fullfile(dataDir, 'colorGaborDetectResponses.mat');
-load(fileName);
+dataFile = fullfile(dataDir, 'colorGaborDetectResponses.mat');
+fprintf('\nLoading data from %s ...\n', dataFile); pause(0.1);
+load(dataFile);
 nTrials = numel(theNoStimData.responseInstanceArray);
 
 %% Put zero contrast response instances into data that we will pass to the SVM
 responseVector = theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:);
+fprintf('\nLoading null stimulus data from %d trials into design matrix %s ...\n', nTrials);
 for iTrial = 1:nTrials
-    fprintf('\nLoading null stimulus data from %d trial into design matrix %s ...\n', iTrial);
     if (iTrial == 1)
         data = zeros(2*nTrials, numel(responseVector));
         classes = zeros(2*nTrials, 1);
@@ -48,6 +48,7 @@ clear 'theNoStimData'
 %% Do SVM for each test contrast and color direction.
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
+        fprintf('\nLoading (%d,%d) stimulus data from %d trials into design matrix %s ...\n', testChromaticDirectionIndex, testContrastIndex, nTrials);
         for iTrial = 1:nTrials
             % Put data into the right form for SVM. 
             % This loop overwrites the stimlus data each time through, a
@@ -55,7 +56,6 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             % modifies the data generation tutorial to produce a different
             % number of noisy instances for different test directions or
             % contrasts.
-            fprintf('\nLoading (%d,%d) stimulus data from %d trial into design matrix %s ...\n', testChromaticDirectionIndex, testContrastIndex, iTrial);
             if (strcmp(signalSource,'photocurrents'))
                 data(nTrials+iTrial,:) = theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
             else
