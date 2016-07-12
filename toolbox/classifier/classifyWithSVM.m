@@ -1,4 +1,4 @@
-function [percentCorrect,stdErr] = classifyWithSVM(data,classes)
+function [percentCorrect,stdErr,svm] = classifyWithSVM(data,classes)
 % percentCorrect = classifyWithSVM(data,classes)
 % 
 % Trains a SVM using 10-kFold Cross Validation and returns the average
@@ -24,10 +24,15 @@ p.addRequired('classes',validateClasses);
 p.parse(data,classes);
 
 %% Train cross validated SVM
-svm = fitcsvm(data,classes,'KernelScale','auto','CrossVal','on','KFold',10);
-percentCorrect = 1 - kfoldLoss(svm,'lossfun','classiferror','mode','individual');
+svm = fitcsvm(data,classes,'KernelScale','auto');
+CVSVM = crossval(svm,'KFold',10);
+percentCorrect = 1 - kfoldLoss(CVSVM,'lossfun','classiferror','mode','individual');
 stdErr = std(percentCorrect)/sqrt(10);
 percentCorrect = mean(percentCorrect);
+
+% We'll discard the data that's normally stored in the SVM object to save space.
+svm = compact(svm);
+svm = discardSupportVectors(svm);
 
 end
 

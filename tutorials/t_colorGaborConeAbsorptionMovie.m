@@ -20,31 +20,32 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 %% Define parameters of a gabor pattern
 %
 % Parameters in degrees.  The field of view is the horizontal dimension.
-gaborParams.fieldOfViewDegs = 4;
+gaborParams.fieldOfViewDegs = 1.5;
+gaborParams.gaussianFWHMDegs = 0.7;
 gaborParams.cyclesPerDegree = 2;
-gaborParams.gaussianFWHMDegs = 1.5;
 gaborParams.row = 128;
 gaborParams.col = 128;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.coneContrasts = [0.05 -0.05 0]';
+gaborParams.coneContrasts = [0.12 -0.12 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
-gaborParams.monitorFile = 'CRT-HP';
+gaborParams.monitorFile = 'OLED-Sony'; % 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 
 % Temporal stimulus parameters
 %
 % 50 msec sampling intervals are probably too long for real work, but OK
 % for this tutorial.
+frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
-temporalParams.stimulusSamplingIntervalInSeconds = 0.050;
+temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 [sampleTimes,gaussianTemporalWindow] = gaussianTemporalWindowCreate(temporalParams);
 nSampleTimes = length(sampleTimes);
 
 % Plot the temporal window, just to make sure it looks right
-vcNewGraphWin;
+figure(1); clf;
 plot(sampleTimes,gaussianTemporalWindow,'r');
 xlabel('Time (seconds)');
 ylabel('Window Amplitude');
@@ -58,6 +59,8 @@ for ii = 1:nSampleTimes
     fprintf('Computing scene %d of %d, time %0.3f, windowVal %0.3f\n',ii,nSampleTimes,sampleTimes(ii),gaussianTemporalWindow(ii));
     gaborScene{ii} = colorGaborSceneCreate(gaborParams);
 end
+%% Make a movie of the stimulus sequence
+visualizeSceneOrOpticalImageSequence('scene', gaborScene, sampleTimes, 'gaborStimulusMovie');
 
 %% Create the OI object we'll use to compute the retinal images from the scenes
 %
@@ -74,20 +77,21 @@ for ii = 1:nSampleTimes
     fprintf('Computing optical image %d of %d, time %0.3f\n',ii,nSampleTimes,sampleTimes(ii));
     theOI{ii} = oiCompute(theBaseOI,gaborScene{ii});
 end
+%% Make a movie of the stimulus sequence
+visualizeSceneOrOpticalImageSequence('optical image', theOI, sampleTimes, 'gaborOpticalImageMovie');
 
 %% Create the coneMosaic object we'll use to compute cone respones
-% 
-% And compute a movie of mosaic responses.  Here we do this one
-% optical image at a time.
-mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs/2;
-mosaicParams.maculur = true;
+mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
+mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1/3 1/3 1/3];
+mosaicParams.integrationTimeInSeconds = 500/1000;
+mosaicParams.timeStepInSeconds = 10/1000;
+mosaicParams.photonNoise = true;
 mosaicParams.osModel = 'Linear';
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
-theMosaic.noiseFlag = false;
 for ii = 1:nSampleTimes      
-    % Compute mosaic response for each time sample
+    % Compute mosaic response for each stimulus frame
     % For a real calculation, we would save these so that we could use them
     % to do something.  But here we just (see next line) compute the
     % contrast seen by each class of cone in the mosaic, just to show we
@@ -95,6 +99,9 @@ for ii = 1:nSampleTimes
     fprintf('Computing absorptions %d of %d, time %0.3f\n',ii,nSampleTimes,sampleTimes(ii));
     gaborConeAbsorptions(:,:,ii) = theMosaic.compute(theOI{ii},'currentFlag',false);
 end
+eyeMovementSequence = [];
+visualizeMosaicResponseSequence('isomerizations (R*/cone)', gaborConeAbsorptions, eyeMovementSequence, theMosaic.pattern, sampleTimes, [theMosaic.width theMosaic.height], theMosaic.fov, mosaicParams.integrationTimeInSeconds, 'gaborIsomerizations');
+
 
 %% Plot cone contrasts as a function of time, as a check
 %

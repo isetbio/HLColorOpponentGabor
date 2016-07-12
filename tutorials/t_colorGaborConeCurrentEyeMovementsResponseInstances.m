@@ -25,9 +25,8 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 simulationTimeStep = 10/1000;
 
 % Stimulus (gabor) params
-scaleF = 1.0;
-gaborParams.fieldOfViewDegs = 1.0*scaleF;
-gaborParams.gaussianFWHMDegs = 0.35*scaleF;
+gaborParams.fieldOfViewDegs = 1.0;
+gaborParams.gaussianFWHMDegs = 0.35;
 gaborParams.cyclesPerDegree = 2;
 gaborParams.row = 128;
 gaborParams.col = 128;

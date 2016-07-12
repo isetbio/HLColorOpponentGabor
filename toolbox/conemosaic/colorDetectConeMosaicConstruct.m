@@ -16,23 +16,25 @@ function theMosaic = colorDetectConeMosaicConstruct(mosaicParams)
 %  7/9/16  npc, dhb  Wrote it.
 %
 
-
-
 % Create a coneMosaic object here. 
 if (isfield(mosaicParams, 'timeStepInSeconds'))
     if (isfield(mosaicParams, 'integrationTimeInSeconds'))
         theMosaic = coneMosaic(...
-            'IntegrationTime',mosaicParams.integrationTimeInSeconds, ...  
-                 'SampleTime',mosaicParams.timeStepInSeconds ...   % em, osCompute
+            'integrationTime',mosaicParams.integrationTimeInSeconds, ...  
+                 'sampleTime',mosaicParams.timeStepInSeconds ...   % em, osCompute
                  );
     else
         theMosaic = coneMosaic(...
-                 'SampleTime',mosaicParams.timeStepInSeconds ...   % em, osCompute
+                 'sampleTime',mosaicParams.timeStepInSeconds ...   % em, osCompute
                  );
     end             
 else
-    % Default foveal parameters for humans.
-    theMosaic = coneMosaic;
+    if (isfield(mosaicParams, 'integrationTimeInSeconds'))
+        theMosaic = coneMosaic('integrationTime',mosaicParams.integrationTimeInSeconds);
+    else
+        % Default foveal parameters for humans.
+        theMosaic = coneMosaic;
+    end
 end
 
 

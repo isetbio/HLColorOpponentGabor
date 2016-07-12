@@ -23,19 +23,18 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 simulationTimeStep = 5/1000;
 
 % Stimulus (gabor) params
-scaleF = 1.0;
-gaborParams.fieldOfViewDegs = 3*scaleF;
-gaborParams.gaussianFWHMDegs = 0.75*scaleF;
-gaborParams.cyclesPerDegree = 2/scaleF;
+gaborParams.fieldOfViewDegs = 1.5;
+gaborParams.gaussianFWHMDegs = 0.7;
+gaborParams.cyclesPerDegree = 2;
 gaborParams.row = 128;
 gaborParams.col = 128;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.coneContrasts = [0.5 0.5 0.5]';
+gaborParams.coneContrasts = [0.12 -0.12 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.leakageLum = 1.0;
-gaborParams.monitorFile = 'CRT-HP';
+gaborParams.monitorFile = 'OLED-Sony'; % 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 theBaseGaborParams = gaborParams;
 
@@ -68,13 +67,12 @@ oiParams.blur = false;
 oiParams.lens = true;
 
 % Cone mosaic parameters
-paddingDegs = 1.0;
-mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
+mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1/3 1/3 1/3];
+mosaicParams.LMSRatio = [0.6 0.3 0.1];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
-mosaicParams.photonNoise = false;
+mosaicParams.photonNoise = true;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
@@ -133,12 +131,28 @@ end
 fprintf('Computing photocurrent sequence ...\n');
 coneIsomerizationRate = coneIsomerizationSequence/theMosaic.integrationTime;
 photocurrentSequence = theMosaic.os.compute(coneIsomerizationRate,theMosaic.pattern);
+timeAxis = (1:size(photocurrentSequence,3))*mosaicParams.timeStepInSeconds;
+timeAxis = timeAxis - (timeAxis(end)-timeAxis(1))/2;
+
+% Visualize and render video of the isomerizations
+visualizeMosaicResponseSequence('isomerizations (R*/cone)', coneIsomerizationSequence, eyeMovementSequence, ...
+                                theMosaic.pattern, timeAxis, [theMosaic.width theMosaic.height], ...
+                                theMosaic.fov, mosaicParams.integrationTimeInSeconds, ...
+                                'gaborIsomerizationsWithEyeMovements');
+
+% Visualize and render video of the photocurrents
+visualizeMosaicResponseSequence('photocurrent (pAmps)', photocurrentSequence, eyeMovementSequence, ...
+                                theMosaic.pattern, timeAxis, [theMosaic.width theMosaic.height], ...
+                                theMosaic.fov, mosaicParams.integrationTimeInSeconds, ...
+                                'gaborPhotocurrentsWithEyeMovements');
+                            
+return;
 
 %% Update theMosaic params
 theMosaic.absorptions = coneIsomerizationSequence;
 theMosaic.current = photocurrentSequence;
 theMosaic.emPositions = eyeMovementSequence;
-timeAxis = (1:size(photocurrentSequence,3))*mosaicParams.timeStepInSeconds;
+
 
 %% Visualize isomerization and photocurrent sequences
 renderVideo = true;
