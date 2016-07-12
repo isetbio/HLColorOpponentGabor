@@ -23,7 +23,9 @@ signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
 dataDir = colorGaborDetectDataDir();
-dataFile = fullfile(dataDir, 'colorGaborDetectResponses.mat');
+responseFile = 'colorGaborDetectResponses_LMS_0.33_0.33_0.33';
+dataFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
+classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
 fprintf('\nLoading data from %s ...\n', dataFile); pause(0.1);
 load(dataFile);
 nTrials = numel(theNoStimData.responseInstanceArray);
@@ -71,6 +73,10 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
         fprintf('Correct: %2.2f%% (SVM took  %2.2f minutes)\n', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100, toc/60);
     end
 end
+
+%Save classification performance data
+save(classificationPerformanceFile, 'percentCorrect', 'stdErr', 'testConeContrasts','testContrasts', 'nTrials');
+
 
 %% Plot performances obtained.
 hFig = figure(1); clf;
