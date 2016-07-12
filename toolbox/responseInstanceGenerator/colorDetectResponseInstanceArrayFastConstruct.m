@@ -105,7 +105,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
                            'timeAxis', timeAxis(timeIndicesToKeep) ...
         );
     end % iTrial
-    fprintf('Response instance generation (%d instances) took %2.1f minutes to compute.\n', nTrials, toc/60);
+    fprintf('Response instance array generation (%d instances) took %2.1f minutes to compute.\n', nTrials, toc/60);
     % Close progress bar
     close(progressHandle);
 end
