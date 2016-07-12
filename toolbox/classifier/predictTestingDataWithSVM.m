@@ -5,7 +5,7 @@ function percentCorrect = predictTestingDataWithSVM(svm,testingData,classes)
 %
 % 7/12/16  xd  wrote it
 
-percentCorrect = sum(predict(svm,testingData)==classes)/length(classes);
+percentCorrect = sum(predict(svm,testingData)==classes)/length(classes)*100;
 
 end
 
