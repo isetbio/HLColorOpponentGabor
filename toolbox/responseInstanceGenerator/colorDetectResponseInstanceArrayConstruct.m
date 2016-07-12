@@ -1,4 +1,4 @@
-function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, milliSecondsToInclude, gaborParams, temporalParams, theOI, theMosaic)
+function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic)
 % responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimulusLabel, nTrials, simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic)
 % 
 % Construct an array of nTrials response instances given the simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic
@@ -71,7 +71,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         timeAxis = timeAxis - timeAxis(end)/2;
 
         % Only include the central response
-        timeIndicesToKeep = find(abs(timeAxis)*1000 <= milliSecondsToInclude/2);
+        timeIndicesToKeep = find(abs(timeAxis)*1000 <= temporalParams.millisecondsToInclude/2);
         
         % Accumulate data in cell array of structs. 
         responseInstanceArray(iTrial) = struct(...
