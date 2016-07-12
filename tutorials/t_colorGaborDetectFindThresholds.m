@@ -3,12 +3,24 @@
 %
 % 7/11/16  npc Wrote it.
 
+%% Initialize
+ieInit; clear; close all;
+
+% Add project toolbox to Matlab path
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox')); 
+
+%% Define parameters of analysis
+%
+% signal source: select between 'photocurrents' and 'isomerizations'
+signalSource = 'photocurrents';
+
 dataDir = colorGaborDetectDataDir();
 fprintf('\nLoading data  from %s ...\n', dataDir);
 fileName = fullfile(dataDir, 'colorGaborDetectResponses.mat');
 load(fileName);
 
 nTrials = numel(theNoStimData.responseInstanceArray);
+
 
 % Enter the zero contrast response instances
 responseVector = theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:);
@@ -18,7 +30,11 @@ for iTrial = 1:nTrials
         data = zeros(2*nTrials, numel(responseVector));
         classes = zeros(2*nTrials, 1);
     end
-    data(iTrial,:) = theNoStimData.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+    if (strcmp(signalSource,'photocurrents'))
+        data(iTrial,:) = theNoStimData.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+    else
+        data(iTrial,:) = theNoStimData.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
+    end
     classes(iTrial,1) = 0;
 end
 clear 'theNoStimData'
@@ -28,9 +44,12 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
         for iTrial = 1:nTrials
             fprintf('\nLoading (%d,%d) stimulus data from %d trial into design matrix %s ...\n', testChromaticDirectionIndex, testContrastIndex, iTrial);
-            data(nTrials+iTrial,:) = theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+            if (strcmp(signalSource,'photocurrents'))
+                data(nTrials+iTrial,:) = theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+            else
+                data(nTrials+iTrial,:) = theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
+            end
             classes(nTrials+iTrial,1) = 1;
-            theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicPhotoCurrents = [];
         end
         % Perform SVM classification for this stimulus vs the zero contrast stimulus
         fprintf('Running SVM for chromatic direction %d, contrast %2.2f ...', testChromaticDirectionIndex , testContrasts(testContrastIndex));
