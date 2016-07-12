@@ -99,7 +99,7 @@ end
 testContrasts = linspace(0.1, 1, 10);
 
 %% Define how many data instances to generate
-trialsNum =  500;
+trialsNum =  200;
 
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';
