@@ -31,7 +31,7 @@ gaborParams.ang = 0;
 gaborParams.ph = 0;
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.leakageLum = 2.0;
-gaborParams.monitorFile = 'CRT-HP';
+gaborParams.monitorFile = 'OLED-Sony';  % 'CRT-HP';
 gaborParams.viewingDistance = 0.75;
 
 % Temporal modulation and stimulus sampling parameters
@@ -70,7 +70,7 @@ mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = false;
-mosaicParams.osNoise = true;
+mosaicParams.osNoise = false;
 mosaicParams.osModel = 'Linear';
 
 %% Create the optics
@@ -81,22 +81,21 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
 %% Define stimulus set
 % Chromatic directions: L+M, L-M
-testConeContrasts(:,1) = [0.5   0.5  0.5]';
-%testConeContrasts(:,1) = [0.20   0.20  0.00]';
-%testConeContrasts(:,2) = [0.50   0.50  0.00]';
+LMangles = (0:45:135)/180*pi;
+for angleIndex = 1:numel(LMangles)
+    theta = LMangles(angleIndex);
+    testConeContrasts(:,angleIndex) = 0.15*[cos(theta) sin(theta) 0.0]';
+end
 
 % Contrasts
-testContrasts =  linspace(0.01, 0.1, 10);
+testContrasts = linspace(0.05, 1, 20);
 
 %% Define how many time bins of the response to keep for classification
 milliSecondsToInclude = 100;
 
 
 %% Define how many data instances to generate
-trainingInstances = 5;
-crossValidationInstances = 5;
-testingInstances = 5;
-trialsNum = 100; % trainingInstances + crossValidationInstances + testingInstances;
+trialsNum =  1000;
 
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';
@@ -136,7 +135,7 @@ end
 
 % Visualize responses
 visualizeResponses = false;
-exportToPDF = false;
+exportToPDF = true;
 renderVideo = false;
 if (visualizeResponses)
     fprintf('\nVisualizing responses ...\n');
@@ -144,8 +143,8 @@ if (visualizeResponses)
         for testContrastIndex = 1:numel(testContrasts)
             stimulusLabel = theStimData{testChromaticDirectionIndex, testContrastIndex}.stimulusLabel;
             s = theStimData{testChromaticDirectionIndex, testContrastIndex};  
-            % Visualize training response instances only
-            for iTrial = 1:trainingInstances
+            % Visualize a few response instances only
+            for iTrial = 1:2
                 figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum, renderVideo);
                 if (exportToPDF)
                     figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
