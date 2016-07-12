@@ -74,7 +74,7 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1/3 1/3 1/3];
+mosaicParams.LMSRatio = [1 0 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = true;
@@ -132,7 +132,7 @@ saveData = true;
 if (saveData)
     dataDir = colorGaborDetectDataDir();
     fprintf('\nSaving generated data in %s ...\n', dataDir);
-    fileName = fullfile(dataDir, 'colorGaborDetectResponses.mat');
+    fileName = fullfile(dataDir, sprintf('colorGaborDetectResponses_LMS_%2.2f_%2.2f_2.2f.mat', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3)));
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
