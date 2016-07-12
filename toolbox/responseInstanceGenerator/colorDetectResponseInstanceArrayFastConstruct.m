@@ -115,4 +115,5 @@ function progressHandle = generateProgressBar(initialMessage)
     titleHandle = get(findobj(progressHandle,'Type','axes'),'Title');
     set(titleHandle,'FontSize',12, 'FontName', 'Menlo');
     waitbar(0, progressHandle, initialMessage);
+    pause(0.2);
 end
