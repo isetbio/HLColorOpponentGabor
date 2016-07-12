@@ -93,14 +93,14 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 LMangles = (0:45:135)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
-    testConeContrasts(:,angleIndex) = 0.15*[cos(theta) sin(theta) 0.0]';
+    testConeContrasts(:,angleIndex) = 0.07*[cos(theta) sin(theta) 0.0]';
 end
 
 % Contrasts
-testContrasts = linspace(0.08, 1, 13);
+testContrasts = linspace(0.1, 1, 10);
 
 %% Define how many data instances to generate
-trialsNum =  1000;
+trialsNum =  500;
 
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';

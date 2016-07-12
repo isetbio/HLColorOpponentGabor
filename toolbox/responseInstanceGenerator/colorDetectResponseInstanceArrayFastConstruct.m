@@ -9,7 +9,10 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
 
     % Inform user regarding the computation progress
     progressHandle = generateProgressBar('Starting computation ...');
-
+    
+    % Start computation time measurement
+    tic
+    
     % Save base gabor params
     theBaseGaborParams = gaborParams;
     
@@ -20,10 +23,9 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
     end
     stimulusFramesNum = length(stimulusSampleTimes);
     
-    % extend sensor size
+    % Generate new, larger mosaic todeal with eye movements
     padRows = 64;
     padCols = 64;
-            
     theLargerMosaic = theMosaic.copy();
     theLargerMosaic.pattern = zeros(theMosaic.rows+2*padRows, theMosaic.cols+2*padCols);
     theLargerMosaic.noiseFlag = false;        
@@ -51,6 +53,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
         theFrameFullMosaicIsomerizatios{stimFrameIndex} = theLargerMosaic.computeSingleFrame(theOI,'FullLMS',true);
     end % stimFrameIndex
     
+    % Larger mosaic not needed anymore
     clear 'theLargerMosaic';
     
     % For each trial compute new eye movement path and obtain new response
@@ -102,7 +105,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
                            'timeAxis', timeAxis(timeIndicesToKeep) ...
         );
     end % iTrial
-    
+    fprintf('Response instance generation (%d instances) took %2.1f minutes to compute.\n', nTrials, toc/60);
     % Close progress bar
     close(progressHandle);
 end

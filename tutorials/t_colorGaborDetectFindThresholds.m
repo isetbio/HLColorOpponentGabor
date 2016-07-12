@@ -43,6 +43,7 @@ for iTrial = 1:nTrials
     end
     classes(iTrial,1) = 0;
 end
+% clear to save memory
 clear 'theNoStimData'
 
 %% Do SVM for each test contrast and color direction.
@@ -63,11 +64,11 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             end
             classes(nTrials+iTrial,1) = 1;
         end
-        
         % Perform SVM classification for this stimulus vs the zero contrast stimulus
-        fprintf('Running SVM for chromatic direction %d, contrast %2.2f ...', testChromaticDirectionIndex , testContrasts(testContrastIndex));
+        fprintf('Running SVM for chromatic direction %d, contrast %2.2f ...  ', testChromaticDirectionIndex , testContrasts(testContrastIndex));
+        tic
         [percentCorrect(testChromaticDirectionIndex, testContrastIndex), stdErr(testChromaticDirectionIndex, testContrastIndex)] = classifyWithSVM(data,classes);
-        fprintf('% correct: %2.2f\n', percentCorrect(testChromaticDirectionIndex, testContrastIndex));
+        fprintf('Correct: %2.2f%% (SVM took  %2.2f minutes)\n', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100, toc/60);
     end
 end
 
