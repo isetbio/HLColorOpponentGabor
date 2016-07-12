@@ -88,7 +88,7 @@ for angleIndex = 1:numel(LMangles)
 end
 
 % Contrasts
-testContrasts = linspace(0.05, 1, 20);
+testContrasts = linspace(0.08, 1, 13);
 
 %% Define how many time bins of the response to keep for classification
 milliSecondsToInclude = 50;
