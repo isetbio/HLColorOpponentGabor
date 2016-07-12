@@ -69,8 +69,8 @@ mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
-mosaicParams.photonNoise = false;
-mosaicParams.osNoise = false;
+mosaicParams.photonNoise = true;
+mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
 %% Create the optics
