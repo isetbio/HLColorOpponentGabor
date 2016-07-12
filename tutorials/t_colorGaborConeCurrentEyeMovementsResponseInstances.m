@@ -92,7 +92,7 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 LMangles = (0:45:135)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
-    testConeContrasts(:,angleIndex) = 0.07*[cos(theta) sin(theta) 0.0]';
+    testConeContrasts(:,angleIndex) = 0.05*[cos(theta) sin(theta) 0.0]';
 end
 
 % Contrasts
