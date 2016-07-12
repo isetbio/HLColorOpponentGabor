@@ -28,7 +28,7 @@ svm = fitcsvm(data,classes,'KernelScale','auto');
 CVSVM = crossval(svm,'KFold',10);
 percentCorrect = 1 - kfoldLoss(CVSVM,'lossfun','classiferror','mode','individual');
 stdErr = std(percentCorrect)/sqrt(10);
-percentCorrect = mean(percentCorrect)*100;
+percentCorrect = mean(percentCorrect);
 
 % We'll discard the data that's normally stored in the SVM object to save space.
 svm = compact(svm);
