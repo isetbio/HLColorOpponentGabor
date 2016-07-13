@@ -25,7 +25,7 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 simulationTimeStep = 10/1000;
 
 % Stimulus (gabor) params
-gaborParams.fieldOfViewDegs = 1.0;
+gaborParams.fieldOfViewDegs = 0.5;
 gaborParams.gaussianFWHMDegs = 0.35;
 gaborParams.cyclesPerDegree = 2;
 gaborParams.row = 128;
@@ -44,7 +44,7 @@ gaborParams.viewingDistance = 0.75;
 % classification routines.
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
-temporalParams.stimulusDurationInSeconds = 4*temporalParams.windowTauInSeconds;
+temporalParams.stimulusDurationInSeconds = 3*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 50;
 
@@ -74,7 +74,7 @@ oiParams.lens = true;
 paddingDegs = 1.0;
 mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1 0 0];
+mosaicParams.LMSRatio = [0 1 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = true;
@@ -99,7 +99,7 @@ end
 testContrasts = linspace(0.1, 1, 10);
 
 %% Define how many data instances to generate
-trialsNum =  200;
+trialsNum =  100;
 
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';
@@ -131,8 +131,8 @@ end % testChromaticDirectionIndex
 saveData = true;
 if (saveData)
     dataDir = colorGaborDetectDataDir();
-    fprintf('\nSaving generated data in %s ...\n', dataDir);
     fileName = fullfile(dataDir, sprintf('colorGaborDetectResponses_LMS_%2.2f_%2.2f_2.2f.mat', mosaicParams.LMSRatio(1), mosaicParams.LMSRatio(2), mosaicParams.LMSRatio(3)));
+    fprintf('\nSaving generated data in %s ...\n', fileName);
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
