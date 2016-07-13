@@ -1,9 +1,16 @@
 function theDir = colorGaborDetectFiguresDir()
-    subDir = 'figures';
+    
+subDir = 'figures';
+
+if (ispref('IBIOColorDetect','outputBaseDir'))
+    theDir = fullfile(getpref('IBIOColorDetect','outputBaseDir'),subDir);
+else
     [p,~] = fileparts(which(mfilename()));
     theDir = fullfile(p(1:strfind(p,'IBIOColorDetect')+numel('IBIOColorDetect')-1), subDir);
-    if (~exist(theDir, 'dir'))
-        fprintf('Creating %s directory on your disk.\n', theDir);
-        mkdir(theDir);
-    end
+end
+if (~exist(theDir, 'dir'))
+    fprintf('Creating %s directory on your disk.\n', theDir);
+    mkdir(theDir);
+end
+
 end

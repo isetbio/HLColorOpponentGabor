@@ -1,6 +1,6 @@
-function theDir = colorGaborDetectVideosDir()
-
-subDir = 'videos';
+function theDir = colorGaborDetectDataDir()
+    
+subDir = 'output';
 
 if (ispref('IBIOColorDetect','outputBaseDir'))
     theDir = fullfile(getpref('IBIOColorDetect','outputBaseDir'),subDir);
@@ -13,4 +13,5 @@ if (~exist(theDir, 'dir'))
     mkdir(theDir);
 end
 
+end
 end
