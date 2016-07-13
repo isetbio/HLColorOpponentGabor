@@ -77,6 +77,7 @@ for ii = 1:nSampleTimes
     fprintf('Computing optical image %d of %d, time %0.3f\n',ii,nSampleTimes,sampleTimes(ii));
     theOI{ii} = oiCompute(theBaseOI,gaborScene{ii});
 end
+
 %% Make a movie of the stimulus sequence
 visualizeSceneOrOpticalImageSequence('optical image', theOI, sampleTimes, 'gaborOpticalImageMovie');
 
@@ -117,7 +118,4 @@ plot(sampleTimes,LMSContrasts(3,:)','b');
 xlabel('Time (seconds)');
 ylabel('Contrast');
 title('LMS Cone Contrasts');
-
-
-
 
