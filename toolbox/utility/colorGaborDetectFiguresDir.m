@@ -1,4 +1,4 @@
-function theDir = colorGaborDetectFiguresDir()
+function theDir = colorGaborDetectFiguresDir(conditionDir)
     
 subDir = 'figures';
 
@@ -9,8 +9,8 @@ else
     topDir = fullfile(p(1:strfind(p,'IBIOColorDetect')+numel('IBIOColorDetect')-1),conditionDir);
 end
 
-if (~exist(topDir),'dir')
-    mdir(topDir);
+if (~exist(topDir,'dir'))
+    mkdir(topDir);
 end
 theDir = fullfile(topDir,subDir);
 if (~exist(theDir, 'dir'))

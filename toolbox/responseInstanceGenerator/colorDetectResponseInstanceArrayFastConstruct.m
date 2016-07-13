@@ -54,7 +54,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
     end % stimFrameIndex
     
     % Larger mosaic not needed anymore
-    clear 'theLargerMosaic';
+    clearvars('theLargerMosaic');
     
     % For each trial compute new eye movement path and obtain new response
     for iTrial = 1: nTrials
@@ -75,6 +75,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
             theFrameEyeMovementPathIsomerizations = ...
                 theMosaic.applyEMPath(theFrameFullMosaicIsomerizatios{stimFrameIndex}, ...
                         'padRows',padRows,'padCols',padCols);
+                    
             % Add noise
             if (theMosaic.noiseFlag)
                 theFrameEyeMovementPathIsomerizations = theMosaic.photonNoise(theFrameEyeMovementPathIsomerizations,'newNoise', true);

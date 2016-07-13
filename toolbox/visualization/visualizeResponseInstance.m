@@ -1,5 +1,5 @@
-function hFig = visualizeResponseInstance(responseInstance, responseLabel, theMosaic, iTrial, trialsNum, renderVideo)
-% hFig = visualizeResponseInstance(responseInstance, theMosaic, iTrial, trialsNum)
+function hFig = visualizeResponseInstance(conditionDir, responseInstance, responseLabel, theMosaic, iTrial, trialsNum, renderVideo)
+% hFig = visualizeResponseInstance(conditionDir, responseInstance, theMosaic, iTrial, trialsNum)
 % 
 % Visualize the central (in time) part of a response instance
 %
@@ -33,8 +33,11 @@ function hFig = visualizeResponseInstance(responseInstance, responseLabel, theMo
 
     if (renderVideo)
         % Open video stream
-        videoDir = colorGaborDetectVideosDir();
-        videoFilename = fullfile(videoDir, sprintf('Instance%dMovie.m4v', iTrial));
+        videoDir = colorGaborDetectVideosDir(conditionDir);
+        if (~exist(fullfile(videoDir,responseLabel),'dir'))
+            mkdir(fullfile(videoDir,responseLabel));
+        end
+        videoFilename = fullfile(videoDir,responseLabel,sprintf('Instance%dMovie.m4v', iTrial));
         writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
         writerObj.FrameRate = 15; 
         writerObj.Quality = 50;
