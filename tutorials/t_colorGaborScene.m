@@ -5,19 +5,38 @@
 % a Gabor with these contrasts on a specified monitor.
 %
 % The code illustrated here is encapsulated into function
-% colorGaborSceneCreate.
+%   colorGaborSceneCreate.
 %
-% See also colorGaborSceneCreate.
+% See also colorGaborSceneCreate, t_colorGaborConeAbsorptionMovie
 %
 % 7/6/16  dhb  Wrote it.
 
 %% Clear
 ieInit; clear; close all;
 
+% Add project toolbox to Matlab path
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
+
+% Some font sizes for plots
+labelFontSize = 12;
+titleFontSize = 14;
+axisFontSize = 8;
+
 %% Define parameters of a gabor pattern
 %
-% full contrast vertical gabor centered on the image.
-% The field of view is the horizontal dimension.
+% This is for a full contrast vertical gabor centered on the image.
+%   fieldOfViewDegs - Field of view in degrees, horizontal direction.
+%   cyclesPerDegree - Grating cycles per degree.
+%   gaussianFWHMDegs - Full width at half max of spatial Gaussian window.
+%   row - Row dimension of scene on monitor
+%   col - Col dimension of scene on monitor
+%   contrast - Contrast specfied relative to testConeContrasts.
+%   ang - Angle of grating, in radians
+%   ph  - Phase of grating, in radians relative to image center
+%   testConeContrasts - Color direction of grating in cone contrast space
+%   backgroundxYY - Colorimetric specification of background, in CIE xyY (cd/m2)
+%   monitorFile - Isetbio display description of monitor on which grating is shown.
+%   viewingDistance - Viewing distance of observer from monitor in meters.
 gaborParams.fieldOfViewDegs = 4;
 gaborParams.cyclesPerDegree = 2;
 gaborParams.gaussianFWHMDegs = 1.5;
@@ -28,10 +47,11 @@ gaborParams.ang = 0;
 gaborParams.ph = 0;
 gaborParams.testConeContrasts = [0.05 -0.05 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
-gaborParams.monitorFile = 'CRT-HP';
+gaborParams.monitorFile = 'CRT-MODEL';
 gaborParams.viewingDistance = 0.75;
 
-% Computed parameters
+% Computed parameters.  These convert numbers to a form used by underlying
+% routines.
 cyclesPerImage = gaborParams.fieldOfViewDegs*gaborParams.cyclesPerDegree;
 gaussianStdDegs = FWHMToStd(gaborParams.gaussianFWHMDegs);
 gaussianStdImageFraction = gaussianStdDegs/gaborParams.fieldOfViewDegs;
@@ -52,16 +72,20 @@ vcNewGraphWin; imagesc(gaborPattern); colormap(gray); axis square
 % degrees, and if you make the Gaussian window wide you can count cycles
 % and make sure they come out right as well.
 figure; hold on;
+set(gca,'FontSize',axisFontSize);
 xDegs = linspace(-gaborParams.fieldOfViewDegs/2,gaborParams.fieldOfViewDegs/2,gaborParams.col);
 plot(xDegs,gaborPattern(gaborParams.row/2,:));
+xlabel('Position (degrees)','FontSize',labelFontSize);
+ylabel('Image Intensity','FontSize',labelFontSize);
 
-%% Convert the Gabor pattern to a modulation around the mean
+%% Convert Gabor to a color modulation specified in cone space
 %
+% First, make it a modulation around the mean
 % This is easy, because imageHarmoic generates the Gabor as a modulation
 % around 1.  Subtracting 1 gives us a modulation in the range -1 to 1.
 gaborModulation = gaborPattern-1;
 
-%% Convert Gabor to a color modulation specified in cone space
+% Convert Gabor to a color modulation specified in cone space
 %
 % This requires a little colorimetry.
 %
@@ -71,8 +95,8 @@ gaborModulation = gaborPattern-1;
 % have the advantage that they are an exact linear transformation away from
 % one another.
 %
-% This is the PTB style data, which I know like the back of my hand.  There
-% is an isetbio way to do this too, I'm sure.  The factor of 683 in front
+% This is the PTB style data, which I (DHB) know like the back of my hand.  There
+% is an Isetbio way to do this too, I'm sure.  The factor of 683 in front
 % of the XYZ color matching functions brings the luminance units into cd/m2
 % when radiance is in Watts/[m2-sr-nm], which are fairly standard units.
 whichXYZ = 'xyzCIEPhys2';
@@ -120,7 +144,7 @@ for ii = 1:3
         actualConeContrasts(ii),abs(gaborParams.testConeContrasts(ii)));
 end
 
-% And take a look at the LMS image.  This is just a straight rendering of
+%% And take a look at the LMS image.  This is just a straight rendering of
 % LMS and so won't look the right colors, but we can check that it is
 % qualitatively correct.
 vcNewGraphWin; imagesc(gaborConeExcitations/max(gaborConeExcitations(:))); axis square
@@ -165,7 +189,7 @@ M_XYZToPrimary = inv(M_PrimaryToXYZ);
 displayMaxXYZ = M_PrimaryToXYZ*[1 1 1]';
 fprintf('Max luminace of the display is %0.1f cd/m2\n',displayMaxXYZ(2));
 
-%% Convert the gaborConeExcitations image to RGB
+% Convert the gaborConeExcitations image to RGB
 [gaborConeExcitationsCalFormat,m,n] = ImageToCalFormat(gaborConeExcitations);
 gaborPrimaryCalFormat = M_ConeExcitationsToPrimary*gaborConeExcitationsCalFormat;
 gaborPrimary = CalFormatToImage(gaborPrimaryCalFormat,m,n);
@@ -184,7 +208,13 @@ end
 % scene in some straightforward manner.
 nLevels = size(displayGet(display,'gamma'),1);
 gaborRGB = round(ieLUTLinear(gaborPrimary,displayGet(display,'inverse gamma')));
+
+% Make a plot of the gamma correction functions.  These should look
+% compressive, the inverse of the monitor gamma function.  In the display
+% file CRT-MODEL that we are using, the gamma was given as a power function
+% with an exponent of 2, just to model something typical.
 vcNewGraphWin; hold on
+set(gca,'FontSize',10);
 theColors = ['r' 'g' 'b'];
 for ii = 1:3
     tempPrimary = gaborPrimary(:,:,ii);
@@ -194,21 +224,20 @@ end
 xlim([0 1]);
 ylim([0 nLevels]);
 axis('square');
-xlabel('Linear channel value');
-ylabel('Gamma corrected DAC settings value');
-title('Gamma correction');
-
-% Look at the image.  It is plausible for an L-M grating.  Remember that we
-% are looking at the stimuli on a monitor different from the display file
-% that we loaded, and thus the RGB values will not produce exactly the
-% desired appearance.
-vcNewGraphWin; h = imagesc(gaborRGB /max(gaborRGB(:))); axis square;
+xlabel('Linear channel value','FontSize',labelFontSize);
+ylabel('Gamma corrected DAC settings','FontSize',labelFontSize);
+title('Gamma correction','FontSize',titleFontSize);
 
 % Finally, make the actual isetbio scene
 % This combines the image we build and the display properties.
 gaborScene = sceneFromFile(gaborRGB,'rgb',[],display);
 gaborScene = sceneSet(gaborScene, 'h fov', gaborParams.fieldOfViewDegs);
-vcAddObject(gaborScene); sceneWindow;
+
+% Look at the scene image.  It is plausible for an L-M grating.  Remember that we
+% are looking at the stimuli on a monitor different from the display file
+% that we loaded, and thus the RGB values will not produce exactly the
+% desired appearance.
+vcNewGraphWin; scenePlot(gaborScene,'radiance image no grid');
 
 %% Create no optics oi
 % Create an optical image with no optics.  Here our goal is to verify that
