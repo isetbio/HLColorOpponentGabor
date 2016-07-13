@@ -28,9 +28,9 @@ gaborParams.col = 128;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.coneContrasts = [0.12 -0.12 0]';
+gaborParams.coneContrasts = [0.06 -0.06 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
-gaborParams.monitorFile = 'OLED-Sony'; % 'CRT-HP';
+gaborParams.monitorFile = 'CRT-MODEL';
 gaborParams.viewingDistance = 0.75;
 
 % Temporal stimulus parameters
@@ -86,7 +86,7 @@ mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1/3 1/3 1/3];
 mosaicParams.integrationTimeInSeconds = 500/1000;
 mosaicParams.timeStepInSeconds = 10/1000;
-mosaicParams.photonNoise = true;
+mosaicParams.photonNoise = false;
 mosaicParams.osModel = 'Linear';
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
