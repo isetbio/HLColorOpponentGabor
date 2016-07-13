@@ -23,6 +23,10 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 simulationTimeStep = 5/1000;
 
 % Stimulus (gabor) params
+% 
+% See t_colorGaborScene for what these means.  One additional
+% parameter here is leakageLum, which is the luminance of the 
+% display device when there is zero input.
 gaborParams.fieldOfViewDegs = 1.5;
 gaborParams.gaussianFWHMDegs = 0.7;
 gaborParams.cyclesPerDegree = 2;
@@ -31,10 +35,10 @@ gaborParams.col = 128;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.coneContrasts = [0.12 -0.12 0]';
+gaborParams.coneContrasts = [0.06 -0.06 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.leakageLum = 1.0;
-gaborParams.monitorFile = 'OLED-Sony'; % 'CRT-HP';
+gaborParams.monitorFile = 'CRT-MODEL';
 gaborParams.viewingDistance = 0.75;
 theBaseGaborParams = gaborParams;
 
@@ -71,7 +75,7 @@ mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 mosaicParams.macular = true;
 mosaicParams.LMSRatio = [0.6 0.3 0.1];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
-mosaicParams.integrationTimeInSeconds = 50/1000;
+mosaicParams.integrationTimeInSeconds = mosaicParams.timeStepInSeconds;
 mosaicParams.photonNoise = true;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
@@ -145,15 +149,3 @@ visualizeMosaicResponseSequence('photocurrent (pAmps)', photocurrentSequence, ey
                                 theMosaic.pattern, timeAxis, [theMosaic.width theMosaic.height], ...
                                 theMosaic.fov, mosaicParams.integrationTimeInSeconds, ...
                                 'gaborPhotocurrentsWithEyeMovements');
-                            
-return;
-
-%% Update theMosaic params
-theMosaic.absorptions = coneIsomerizationSequence;
-theMosaic.current = photocurrentSequence;
-theMosaic.emPositions = eyeMovementSequence;
-
-
-%% Visualize isomerization and photocurrent sequences
-renderVideo = true;
-visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, renderVideo);

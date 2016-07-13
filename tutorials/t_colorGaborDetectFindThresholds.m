@@ -22,7 +22,7 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
-dataDir = colorGaborDetectDataDir();
+dataDir = colorGaborDetectOutputDir();
 responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00';
 responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));

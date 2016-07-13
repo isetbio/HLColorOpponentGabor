@@ -19,6 +19,17 @@ ieInit; clear; close all;
 % Add project toolbox to Matlab path
 AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox')); 
 
+%% Parameters that control output
+
+% Set to true to save data for use by t_colorGaborDetectFindThresholds
+saveData = true;
+
+% These may only work on some computers, depending on what
+% infrastructure is installed.
+visualizeResponses = false;
+exportToPDF = true;
+renderVideo = false;
+
 %% Define parameters of simulation
 %
 % The time step at which to compute eyeMovements and osResponses
@@ -34,7 +45,7 @@ gaborParams.ang = 0;
 gaborParams.ph = 0;
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.leakageLum = 2.0;
-gaborParams.monitorFile = 'OLED-Sony';  % 'CRT-HP';
+gaborParams.monitorFile = 'CRT-MODEL';
 gaborParams.viewingDistance = 0.75;
 
 % Temporal modulation and stimulus sampling parameters.
@@ -47,6 +58,7 @@ temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 2*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 50;
+temporalParams.eyeMovements = true;
 
 % Optional CRT raster effects.
 % 
@@ -75,7 +87,7 @@ mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1 0 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
-mosaicParams.integrationTimeInSeconds = 50/1000;
+mosaicParams.integrationTimeInSeconds = mosaicParams.timeStepInSeconds;
 mosaicParams.photonNoise = true;
 mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
@@ -87,8 +99,10 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
 %% Define stimulus set
-% Chromatic directions in L/M plane
-deltaAngle = 15;  % deltaAngle = 45;
+%
+% Chromatic directions in L/M plane.  It's a little easier to think in
+% terms of angles.
+deltaAngle = 15; 
 LMangles = (0:deltaAngle:180-deltaAngle)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
@@ -99,10 +113,10 @@ end
 testContrasts = linspace(0.1, 1, 10);  % linspace(0.1, 1, 7);
 
 %% Define how many data instances to generate
-trialsNum =  300;
+trialsNum =  500;
 
-tic
 %% Generate data for the no stimulus condition
+tic
 gaborParams.coneContrasts = [0 0 0]';
 gaborParams.contrast = 0;
 stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f', gaborParams.coneContrasts(1), gaborParams.coneContrasts(2), gaborParams.coneContrasts(3), gaborParams.contrast);
@@ -130,18 +144,15 @@ end % testChromaticDirectionIndex
 fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
 
 %% Save the data for use by the classifier preprocessing subroutine
-saveData = true;
+conditionDir = paramsToDirName(gaborParams,temporalParams,oiParams,mosaicParams,[]);
 if (saveData)
-    dataDir = colorGaborDetectDataDir();
+    dataDir = colorGaborDetectOutputDir(conditionDir);
     fileName = fullfile(dataDir, sprintf('colorGaborDetectResponses_LMS_%2.2f_%2.2f_%2.2f.mat', mosaicParams.LMSRatio(1), mosaicParams.LMSRatio(2), mosaicParams.LMSRatio(3)));
     fprintf('\nSaving generated data in %s ...\n', fileName);
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
 
 %% Visualize responses
-visualizeResponses = false;
-exportToPDF = true;
-renderVideo = false;
 if (visualizeResponses)
     fprintf('\nVisualizing responses ...\n');
     for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
@@ -153,7 +164,7 @@ if (visualizeResponses)
                 figHandle = visualizeResponseInstance(s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum, renderVideo);
                 if (exportToPDF)
                     figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial} = ...
-                        fullfile(colorGaborDetectFiguresDir(),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
+                        fullfile(colorGaborDetectFiguresDir(conditionDir),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
                     NicePlot.exportFigToPDF(figFileNames{testChromaticDirectionIndex, testContrastIndex, iTrial}, figHandle, 300);
                 end
             end % iTrial
@@ -162,7 +173,7 @@ if (visualizeResponses)
 
     % Export summary PDF with all responses
     if (exportToPDF)
-        summaryPDF = fullfile(colorGaborDetectFiguresDir(), 'AllInstances.pdf');
+        summaryPDF = fullfile(colorGaborDetectFiguresDir(conditionDir), 'AllInstances.pdf');
         fprintf('Exporting a summary PDF with all response instances in %s\n', summaryPDF);
         NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
     end
