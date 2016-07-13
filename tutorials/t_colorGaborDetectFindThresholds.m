@@ -77,7 +77,7 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
 end
 fprintf('SVM classification took %2.2f minutes\n', toc/60);
 
-%Save classification performance data
+% Save classification performance data
 save(classificationPerformanceFile, 'percentCorrect', 'stdErr', 'testConeContrasts','testContrasts', 'nTrials', ...
     'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams');
 
