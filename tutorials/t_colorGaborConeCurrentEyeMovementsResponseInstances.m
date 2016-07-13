@@ -88,8 +88,7 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
 %% Define stimulus set
 % Chromatic directions in L/M plane
-deltaAngle = 45;
-deltaAngle = 15;
+deltaAngle = 15;  % deltaAngle = 45;
 LMangles = (0:deltaAngle:180-deltaAngle)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
@@ -97,7 +96,7 @@ for angleIndex = 1:numel(LMangles)
 end
 
 % Contrasts
-testContrasts = linspace(0.1, 1, 10);
+testContrasts = linspace(0.1, 1, 10);  % linspace(0.1, 1, 7);
 
 %% Define how many data instances to generate
 trialsNum =  300;
