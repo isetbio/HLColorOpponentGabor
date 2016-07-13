@@ -87,18 +87,20 @@ theOI = colorDetectOpticalImageConstruct(oiParams);
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 
 %% Define stimulus set
-% Chromatic directions: L+M, L-M
-LMangles = (0:45:135)/180*pi;
+% Chromatic directions in L/M plane
+deltaAngle = 45;
+deltaAngle = 15;
+LMangles = (0:deltaAngle:180-deltaAngle)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
     testConeContrasts(:,angleIndex) = 0.06*[cos(theta) sin(theta) 0.0]';
 end
 
 % Contrasts
-testContrasts = linspace(0.1, 1, 7);
+testContrasts = linspace(0.1, 1, 10);
 
 %% Define how many data instances to generate
-trialsNum =  100;
+trialsNum =  300;
 
 tic
 %% Generate data for the no stimulus condition
