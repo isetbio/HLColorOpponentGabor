@@ -30,10 +30,10 @@ axisFontSize = 8;
 %   gaussianFWHMDegs - Full width at half max of spatial Gaussian window.
 %   row - Row dimension of scene on monitor
 %   col - Col dimension of scene on monitor
-%   contrast - Contrast specfied relative to testConeContrasts.
+%   contrast - Contrast specfied relative to coneContrasts.
 %   ang - Angle of grating, in radians
 %   ph  - Phase of grating, in radians relative to image center
-%   testConeContrasts - Color direction of grating in cone contrast space
+%   coneContrasts - Color direction of grating in cone contrast space
 %   backgroundxYY - Colorimetric specification of background, in CIE xyY (cd/m2)
 %   monitorFile - Isetbio display description of monitor on which grating is shown.
 %   viewingDistance - Viewing distance of observer from monitor in meters.
@@ -45,7 +45,7 @@ gaborParams.col = 128;
 gaborParams.contrast = 1;
 gaborParams.ang = 0;
 gaborParams.ph = 0;
-gaborParams.testConeContrasts = [0.05 -0.05 0]';
+gaborParams.coneContrasts = [0.05 -0.05 0]';
 gaborParams.backgroundxyY = [0.27 0.30 49.8]';
 gaborParams.monitorFile = 'CRT-MODEL';
 gaborParams.viewingDistance = 0.75;
@@ -123,7 +123,7 @@ end
 backgroundConeExcitations = M_XYZToCones*xyYToXYZ(gaborParams.backgroundxyY);
 
 % Convert test cone contrasts to cone excitations
-testConeExcitations = (gaborParams.testConeContrasts .* backgroundConeExcitations);
+testConeExcitations = (gaborParams.coneContrasts .* backgroundConeExcitations);
 
 % Make the color gabor in LMS excitations
 gaborConeExcitationsBg = ones(gaborParams.row,gaborParams.col);
@@ -141,7 +141,7 @@ for ii = 1:3
     theMax = max(gaborPlane(:)); theMin = min(gaborPlane(:));
     actualConeContrasts(ii) = (theMax-theMin)/(theMax+theMin);
     fprintf('Actual absolute %s cone contrast: %0.3f, nominal: % 0.3f\n', coneTypes{ii}, ...
-        actualConeContrasts(ii),abs(gaborParams.testConeContrasts(ii)));
+        actualConeContrasts(ii),abs(gaborParams.coneContrasts(ii)));
 end
 
 %% And take a look at the LMS image.  This is just a straight rendering of
