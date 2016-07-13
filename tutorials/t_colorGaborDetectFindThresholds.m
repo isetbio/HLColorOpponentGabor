@@ -23,7 +23,7 @@ signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
 dataDir = colorGaborDetectDataDir();
-responseFile = 'colorGaborDetectResponses_LMS_0.33_0.33_0.33';
+responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00';
 dataFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
 fprintf('\nLoading data from %s ...\n', dataFile); pause(0.1);
