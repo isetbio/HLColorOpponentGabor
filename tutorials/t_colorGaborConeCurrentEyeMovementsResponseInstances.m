@@ -73,6 +73,9 @@ temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 300;
 temporalParams.eyeMovements = true;
 
+% Optionally, have zero amplitude eye movements
+temporalParams.eyesDoNotMove = false; 
+
 % Optional CRT raster effects.
 % 
 % The underlying routine that generates temporal samples 

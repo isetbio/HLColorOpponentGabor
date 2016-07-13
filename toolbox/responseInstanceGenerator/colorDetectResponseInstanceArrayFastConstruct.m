@@ -65,12 +65,16 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
         eyeMovementsTotalNum = round(eyeMovementsPerStimFrame*stimulusFramesNum);
         eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);    
 
+        if (isfield(temporalParams,'eyesDoNotMove') && (temporalParams.eyesDoNotMove))
+            eyeMovementSequence = eyeMovementSequence * 0;
+        end
+        
         % Loop over our stimulus frames
         for stimFrameIndex = 1:stimulusFramesNum
             % Apply current frame eye movements to the mosaic
             eyeMovementIndices = (round((stimFrameIndex-1)*eyeMovementsPerStimFrame)+1 : round(stimFrameIndex*eyeMovementsPerStimFrame));
             theMosaic.emPositions = eyeMovementSequence(eyeMovementIndices,:);
-        
+    
             % Compute noise-free isomerizations for the current frame by applying eye movements during this stimulus frame
             theFrameEyeMovementPathIsomerizations = ...
                 theMosaic.applyEMPath(theFrameFullMosaicIsomerizatios{stimFrameIndex}, ...

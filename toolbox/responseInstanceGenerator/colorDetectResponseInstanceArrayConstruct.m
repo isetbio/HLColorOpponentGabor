@@ -49,6 +49,10 @@ function responseInstanceArray = colorDetectResponseInstanceArrayConstruct(stimu
         eyeMovementsTotalNum = round(eyeMovementsPerStimFrame*stimulusFramesNum);
         eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);    
         
+        if (isfield(temporalParams,'eyesDoNotMove') && (temporalParams.eyesDoNotMove))
+            eyeMovementSequence = eyeMovementSequence * 0;
+        end
+            
         % Loop over our stimulus frames
         for stimFrameIndex = 1:stimulusFramesNum
             % Apply current frame eye movements to the mosaic

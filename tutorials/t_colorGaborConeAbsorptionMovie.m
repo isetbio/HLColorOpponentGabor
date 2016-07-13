@@ -60,7 +60,8 @@ for ii = 1:nSampleTimes
     gaborScene{ii} = colorGaborSceneCreate(gaborParams);
 end
 %% Make a movie of the stimulus sequence
-visualizeSceneOrOpticalImageSequence('scene', gaborScene, sampleTimes, 'gaborStimulusMovie');
+showLuminanceMap = false;
+visualizeSceneOrOpticalImageSequence('scene', gaborScene, sampleTimes, showLuminanceMap, 'gaborStimulusMovie');
 
 %% Create the OI object we'll use to compute the retinal images from the scenes
 %
@@ -79,7 +80,8 @@ for ii = 1:nSampleTimes
 end
 
 %% Make a movie of the stimulus sequence
-visualizeSceneOrOpticalImageSequence('optical image', theOI, sampleTimes, 'gaborOpticalImageMovie');
+showLuminanceMap = false;
+visualizeSceneOrOpticalImageSequence('optical image', theOI, sampleTimes, showLuminanceMap, 'gaborOpticalImageMovie');
 
 %% Create the coneMosaic object we'll use to compute cone respones
 mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
