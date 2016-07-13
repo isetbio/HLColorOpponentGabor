@@ -44,6 +44,9 @@ temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 5*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 
+% Optionally, have zero amplitude eye movements
+temporalParams.eyesDoNotMove = false; 
+
 % Optional CRT raster effects.
 % 
 % The underlying routine that generates temporal samples 
@@ -93,7 +96,10 @@ stimulusFramesNum = length(stimulusSampleTimes);
 eyeMovementsPerStimFrame = temporalParams.stimulusSamplingIntervalInSeconds/simulationTimeStep;
 eyeMovementsTotalNum = round(eyeMovementsPerStimFrame*stimulusFramesNum);
 eyeMovementSequence = theMosaic.emGenSequence(eyeMovementsTotalNum);
-
+if (isfield(temporalParams,'eyesDoNotMove') && (temporalParams.eyesDoNotMove))
+    eyeMovementSequence = eyeMovementSequence * 0;
+end
+        
 %% Loop over our stimulus frames
 for stimFrameIndex = 1:stimulusFramesNum
     fprintf('Computing isomerizations for frame %d of %d\n', stimFrameIndex, stimulusFramesNum);
