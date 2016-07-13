@@ -23,7 +23,7 @@ signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
 dataDir = colorGaborDetectDataDir();
-responseFile = 'colorGaborDetectResponses_LMS_0.00_1.00_0.00';
+responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00';
 responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
 fprintf('\nLoading data from %s ...', responsesFullFile); 
@@ -50,6 +50,7 @@ end
 % clear to save memory
 clear 'theNoStimData'
 
+tic
 %% Do SVM for each test contrast and color direction.
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
@@ -70,12 +71,11 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
         end
         % Perform SVM classification for this stimulus vs the zero contrast stimulus
         fprintf('\tRunning SVM for chromatic direction %d, contrast %2.2f ...  ', testChromaticDirectionIndex , testContrasts(testContrastIndex));
-        tic
         [percentCorrect(testChromaticDirectionIndex, testContrastIndex), stdErr(testChromaticDirectionIndex, testContrastIndex)] = classifyWithSVM(data,classes);
-        fprintf('Correct: %2.2f%% (SVM took  %2.2f minutes)', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100, toc/60);
+        fprintf('Correct: %2.2f%%', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100);
     end
 end
-printf('All done\n');
+fprintf('SVM classification took %2.2f minutes\n', toc/60);
 
 %Save classification performance data
 save(classificationPerformanceFile, 'percentCorrect', 'stdErr', 'testConeContrasts','testContrasts', 'nTrials');
@@ -85,9 +85,10 @@ save(classificationPerformanceFile, 'percentCorrect', 'stdErr', 'testConeContras
 hFig = figure(1); clf;
 set(hFig, 'Position', [10 10 680 590], 'Color', [1 1 1]);
 for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
-    subplot(1,size(testConeContrasts,2), testChromaticDirectionIndex)
+    subplot(size(testConeContrasts,2), 1, testChromaticDirectionIndex)
     errorbar(testContrasts, squeeze(percentCorrect(testChromaticDirectionIndex,:)), squeeze(stdErr(testChromaticDirectionIndex, :)), ...
         'ro-', 'LineWidth', 2.0, 'MarkerSize', 12, 'MarkerFaceColor', [1.0 0.5 0.50]);
+    axis 'square'
     set(gca, 'YLim', [0 1.0],'XLim', [testContrasts(1) testContrasts(end)], 'FontSize', 14);
     xlabel('contrast', 'FontSize' ,16, 'FontWeight', 'bold');
     ylabel('percent correct', 'FontSize' ,16, 'FontWeight', 'bold');

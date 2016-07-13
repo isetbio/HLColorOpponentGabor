@@ -25,7 +25,7 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 simulationTimeStep = 10/1000;
 
 % Stimulus (gabor) params
-gaborParams.fieldOfViewDegs = 0.5;
+gaborParams.fieldOfViewDegs = 1.0;
 gaborParams.gaussianFWHMDegs = 0.35;
 gaborParams.cyclesPerDegree = 2;
 gaborParams.row = 128;
@@ -44,7 +44,7 @@ gaborParams.viewingDistance = 0.75;
 % classification routines.
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
-temporalParams.stimulusDurationInSeconds = 3*temporalParams.windowTauInSeconds;
+temporalParams.stimulusDurationInSeconds = 2*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 50;
 
@@ -71,10 +71,9 @@ oiParams.blur = false;
 oiParams.lens = true;
 
 % Cone mosaic parameters
-paddingDegs = 1.0;
-mosaicParams.fieldOfViewDegs = (gaborParams.fieldOfViewDegs + paddingDegs)/2;
+mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [0 1 0];
+mosaicParams.LMSRatio = [1 0 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = 50/1000;
 mosaicParams.photonNoise = true;
@@ -92,15 +91,16 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 LMangles = (0:45:135)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
-    testConeContrasts(:,angleIndex) = 0.05*[cos(theta) sin(theta) 0.0]';
+    testConeContrasts(:,angleIndex) = 0.06*[cos(theta) sin(theta) 0.0]';
 end
 
 % Contrasts
-testContrasts = linspace(0.1, 1, 10);
+testContrasts = linspace(0.1, 1, 7);
 
 %% Define how many data instances to generate
 trialsNum =  100;
 
+tic
 %% Generate data for the no stimulus condition
 gaborParams.coneContrasts = [0 0 0]';
 gaborParams.contrast = 0;
@@ -125,8 +125,9 @@ for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, simulationTimeStep, ...
                                           gaborParams, temporalParams, theOI, theMosaic));
     end % testContrastIndex
-end % testChromaticDirectionIndex
-                                 
+end % testChromaticDirectionIndex       
+fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
+
 %% Save the data for use by the classifier preprocessing subroutine
 saveData = true;
 if (saveData)
