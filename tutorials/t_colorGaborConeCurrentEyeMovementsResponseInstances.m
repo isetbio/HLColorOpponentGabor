@@ -131,7 +131,7 @@ end % testChromaticDirectionIndex
 saveData = true;
 if (saveData)
     dataDir = colorGaborDetectDataDir();
-    fileName = fullfile(dataDir, sprintf('colorGaborDetectResponses_LMS_%2.2f_%2.2f_2.2f.mat', mosaicParams.LMSRatio(1), mosaicParams.LMSRatio(2), mosaicParams.LMSRatio(3)));
+    fileName = fullfile(dataDir, sprintf('colorGaborDetectResponses_LMS_%2.2f_%2.2f_%2.2f.mat', mosaicParams.LMSRatio(1), mosaicParams.LMSRatio(2), mosaicParams.LMSRatio(3)));
     fprintf('\nSaving generated data in %s ...\n', fileName);
     save(fileName, 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end

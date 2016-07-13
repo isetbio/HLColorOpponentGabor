@@ -23,11 +23,13 @@ signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
 dataDir = colorGaborDetectDataDir();
-responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00';
-dataFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
+responseFile = 'colorGaborDetectResponses_LMS_0.00_1.00_0.00';
+responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
-fprintf('\nLoading data from %s ...\n', dataFile); pause(0.1);
-load(dataFile);
+fprintf('\nLoading data from %s ...', responsesFullFile); 
+fprintf('\nWill save classification performance in %s\n', classificationPerformanceFile);
+pause(0.1);
+load(responsesFullFile);
 nTrials = numel(theNoStimData.responseInstanceArray);
 
 %% Put zero contrast response instances into data that we will pass to the SVM
