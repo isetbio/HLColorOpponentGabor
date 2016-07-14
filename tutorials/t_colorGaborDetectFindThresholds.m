@@ -42,6 +42,8 @@ theBlankData = load(responsesFullFile);
 fprintf('done\n');
 fprintf('\nWill save classification performance to %s\n', classificationPerformanceFile);
 nTrials = numel(theBlankData.theNoStimData.responseInstanceArray);
+testConeContrasts = theBlankData.testConeContrasts;
+testContrasts = theBlankData.testContrasts;
 
 %% Put zero contrast response instances into data that we will pass to the SVM
 responseSize = numel(theBlankData.theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:));
@@ -63,9 +65,9 @@ for iTrial = 1:nTrials
 end
 
 %% Check that performance is at chance if we pass the same data array
-[checkForChancePercentCorrect,checkForChanceStdErr] = ClassifyForOneDirection(1,data,{theBlankData.theNoStimData},classes,nTrials,0,signalSource,PCAComponents,kFold); 
-fprintf('Classifying blank against blank peformance: %0.2f +/- %0.3f\n',checkForChancePercentCorrect,checkForChanceStdErr);
-clearvars('theBlankData');
+% [checkForChancePercentCorrect,checkForChanceStdErr] = ClassifyForOneDirection(1,data,{theBlankData.theNoStimData},classes,nTrials/2,0,signalSource,PCAComponents,kFold); 
+% fprintf('Classifying blank against blank peformance: %0.2f +/- %0.3f\n',checkForChancePercentCorrect,checkForChanceStdErr);
+% clearvars('theBlankData');
 
 %% Do SVM for each test contrast and color direction.
 %

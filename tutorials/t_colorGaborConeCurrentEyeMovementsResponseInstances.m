@@ -40,11 +40,11 @@ trialsNum = 500; %500;
 % Also base stimulus length in cone contrast space.  This variable
 % no long has an effect because we scale each base direction to be 
 % just inside monitor gamut
-deltaAngle = 30; % 15; 
+deltaAngle = 15; % 15; 
 baseStimulusLength = 1;
 
 % Number of contrasts to run in each color direction
-nContrastsPerDirection = 4; % 10;
+nContrastsPerDirection = 10; % 10;
 lowContrast = 0.001;
 highContrast = 0.4;
 

@@ -35,7 +35,7 @@ for jj = 1:numel(testContrasts)
     % Perform SVM classification for this stimulus vs the zero contrast stimulus
     fprintf('\tRunning SVM for chromatic direction %d, contrast %2.2f ...', ii , testContrasts(jj));
     [usePercentCorrect(jj), useStdErr(jj)] = classifyWithSVM(theData,classes,kFold);
-    fprintf(' correct: %2.2f%%', usePercentCorrect(jj)*100);
+    fprintf(' correct: %2.2f%%\n', usePercentCorrect(jj)*100);
 end
 
 end
