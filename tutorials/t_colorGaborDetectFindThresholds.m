@@ -79,7 +79,7 @@ end
 tic
 usePercentCorrect = cell(size(testConeContrasts,2),1);
 useStdErr = cell(size(testConeContrasts,2),1);
-for ii = 1:size(testConeContrasts,2)
+parfor ii = 1:size(testConeContrasts,2)
     thisResponseFile = sprintf('responseInstances_%d',ii);
     thisResponseFullFile = fullfile(dataDir, sprintf('%s.mat',thisResponseFile));
     theData = load(thisResponseFullFile);
