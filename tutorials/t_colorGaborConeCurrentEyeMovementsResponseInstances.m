@@ -70,8 +70,7 @@ frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 2*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
-temporalParams.millisecondsToInclude = 300;
-temporalParams.eyeMovements = true;
+temporalParams.millisecondsToInclude = 50;
 
 % Optionally, have zero amplitude eye movements
 temporalParams.eyesDoNotMove = false; 
