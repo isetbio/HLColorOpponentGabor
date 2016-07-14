@@ -32,7 +32,7 @@ PCAComponents = 200;
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
 dataDir = colorGaborDetectOutputDir(conditionDir,'output');
-responseFile = 'responseInstances';
+responseFile = 'responseInstances_0';
 responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('ClassificationPerformance_%s_kFold%0.0f_pca%0.0f.mat',signalSource,kFold,PCAComponents));
 fprintf('\nLoading data from %s ...', responsesFullFile); 
@@ -71,6 +71,10 @@ tic
 usePercentCorrect = cell(size(testConeContrasts,2),1);
 useStdErr = cell(size(testConeContrasts,2),1);
 parfor ii = 1:size(testConeContrasts,2)
+    thisResponseFile = sprintf('responseInstances_%d.mat',ii);
+    thisResponseFullFile = fullfile(dataDir, sprintf('%s.mat',thisResponseFile));
+    theData = load(thisResponseFullFile);
+    theStimData = theData.theStimData;
     [usePercentCorrect{ii},useStdErr{ii}] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,PCAComponents,kFold);  
 end
 fprintf('SVM classification took %2.2f minutes\n', toc/60);

@@ -33,18 +33,18 @@ renderVideo = false;
 %% Parameters that define how much we do here
 
 % Define how many noisy data instances to generate
-trialsNum = 500; %500;
+trialsNum = 2; %500;
 
 % Delta angle sampling in LM plane (samples between 0 and 180 degrees)
 %
 % Also base stimulus length in cone contrast space.  This variable
 % no long has an effect because we scale each base direction to be 
 % just inside monitor gamut
-deltaAngle = 45; % 15; 
+deltaAngle = 90; % 15; 
 baseStimulusLength = 1;
 
 % Number of contrasts to run in each color direction
-nContrastsPerDirection = 5; % 10;
+nContrastsPerDirection = 2; % 10;
 
 %% Define parameters of simulation
 %
