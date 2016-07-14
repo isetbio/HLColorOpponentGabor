@@ -18,26 +18,35 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 
 %% Define parameters of analysis
 %
-% signal source: select between 'photocurrents' and 'isomerizations'
+% Condition directory that has the response instances
+conditionDir = 'cpd2_sfv1.00_fw0.350_tau0.165_dur0.33_em0_use50_off35_b0_l1_LMS1.00_0.00_0.00_mfv1.00';
+
+% Signal source: select between 'photocurrents' and 'isomerizations'
 signalSource = 'photocurrents';
 
+% Number of SVM cross validations to use
+kFold = 5;
+
+% PCA components.  Set to zero for no PCA
+PCAComponents = 200;
+
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
-conditionDir = 'cpd2_sfv1.00_fw0.350_tau0.165_dur0.33_em0_use50_off35_b0_l1_LMS1.00_0.00_0.00_mfv1.00';
 dataDir = colorGaborDetectOutputDir(conditionDir,'output');
 responseFile = 'responseInstances';
 responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
-classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
+classificationPerformanceFile = fullfile(dataDir, sprintf('ClassificationPerformance_%s_kFold%0.0f_pca%0.0f.mat',signalSource,kFold,PCAComponents));
 fprintf('\nLoading data from %s ...', responsesFullFile); 
-fprintf('\nWill save classification performance in %s\n', classificationPerformanceFile);
 load(responsesFullFile);
+fprintf('done\n');
+fprintf('\nWill save classification performance to %s\n', classificationPerformanceFile);
 nTrials = numel(theNoStimData.responseInstanceArray);
 
 %% Put zero contrast response instances into data that we will pass to the SVM
-responseVector = theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:);
+responseSize = numel(theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:));
 fprintf('\nLoading null stimulus data from %d trials into design matrix %s ...\n', nTrials);
 for iTrial = 1:nTrials
     if (iTrial == 1)
-        data = zeros(2*nTrials, numel(responseVector));
+        data = zeros(2*nTrials, responseSize);
         classes = zeros(2*nTrials, 1);
     end
     if (strcmp(signalSource,'photocurrents'))
@@ -45,16 +54,22 @@ for iTrial = 1:nTrials
     else
         data(iTrial,:) = theNoStimData.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
     end
+    
+    % Set up classes variable
     classes(iTrial,1) = 0;
+    classes(nTrials+iTrial,1) = 1;
 end
 clearvars('theNoStimData');
 
-
 %% Do SVM for each test contrast and color direction.
 tic
-parfor testChromaticDirectionIndex = 1:size(testConeContrasts,2)
-    for testContrastIndex = 1:numel(testContrasts)
-        fprintf('\nLoading (%d,%d) stimulus data from %d trials into design matrix %s ...\n', testChromaticDirectionIndex, testContrastIndex, nTrials);
+useData = cell(size(testConeContrasts,2),1);
+percentCorrect = cell(size(testConeContrasts,2),1);
+stdErr = cell(size(testConeContrasts,2),1);
+parfor ii = 1:size(testConeContrasts,2)
+    useData{ii} = data;
+    for jj = 1:numel(testContrasts)
+        fprintf('\nLoading (%d,%d) stimulus data from %d trials into design matrix %s ...\n', ii, jj, nTrials);
         for iTrial = 1:nTrials
             % Put data into the right form for SVM. 
             % This loop overwrites the stimlus data each time through, a
@@ -63,37 +78,44 @@ parfor testChromaticDirectionIndex = 1:size(testConeContrasts,2)
             % number of noisy instances for different test directions or
             % contrasts.
             if (strcmp(signalSource,'photocurrents'))
-                data(nTrials+iTrial,:) = theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+                useData{ii}(nTrials+iTrial,:) = theStimData{ii, jj}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
             else
-                data(nTrials+iTrial,:) = theStimData{testChromaticDirectionIndex, testContrastIndex}.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
-            end
-            classes(nTrials+iTrial,1) = 1;
+                useData{ii}(nTrials+iTrial,:) = theStimData{ii, jj}.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
+            end  
         end
+        
+        % Do PCA?
+        if (PCAComponents > 0)
+            fprintf('\tDoing PCA\n');
+            useData{ii} = transformDataWithPCA(useData{ii},PCAComponents);
+        end
+        
         % Perform SVM classification for this stimulus vs the zero contrast stimulus
-        fprintf('\tRunning SVM for chromatic direction %d, contrast %2.2f ...  ', testChromaticDirectionIndex , testContrasts(testContrastIndex));
-        [percentCorrect(testChromaticDirectionIndex, testContrastIndex), stdErr(testChromaticDirectionIndex, testContrastIndex)] = classifyWithSVM(data,classes);
-        fprintf('Correct: %2.2f%%', percentCorrect(testChromaticDirectionIndex, testContrastIndex)*100);
+        fprintf('\tRunning SVM for chromatic direction %d, contrast %2.2f ...  ', ii , testContrasts(jj));
+        [percentCorrect{ii}(jj), stdErr{ii}(jj)] = classifyWithSVM(useData{ii},classes,kFold);
+        fprintf('Correct: %2.2f%%', percentCorrect{ii}(jj)*100);
     end
 end
 fprintf('SVM classification took %2.2f minutes\n', toc/60);
 
-% Save classification performance data
+% Save classification performance data and a copy of this script
 save(classificationPerformanceFile, 'percentCorrect', 'stdErr', 'testConeContrasts','testContrasts', 'nTrials', ...
     'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams');
-
+scriptDir = colorGaborDetectOutputDir(conditionDir,'scripts');
+    unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);
 
 %% Plot performances obtained.
 hFig = figure(1); clf;
 set(hFig, 'Position', [10 10 680 590], 'Color', [1 1 1]);
-for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
-    subplot(size(testConeContrasts,2), 1, testChromaticDirectionIndex)
-    errorbar(testContrasts, squeeze(percentCorrect(testChromaticDirectionIndex,:)), squeeze(stdErr(testChromaticDirectionIndex, :)), ...
+for ii = 1:size(testConeContrasts,2)
+    subplot(size(testConeContrasts,2), 1, ii)
+    errorbar(testContrasts, squeeze(percentCorrect(ii,:)), squeeze(stdErr(ii, :)), ...
         'ro-', 'LineWidth', 2.0, 'MarkerSize', 12, 'MarkerFaceColor', [1.0 0.5 0.50]);
     axis 'square'
     set(gca, 'YLim', [0 1.0],'XLim', [testContrasts(1) testContrasts(end)], 'FontSize', 14);
     xlabel('contrast', 'FontSize' ,16, 'FontWeight', 'bold');
     ylabel('percent correct', 'FontSize' ,16, 'FontWeight', 'bold');
     box off; grid on
-    title(sprintf('LMS = [%2.2f %2.2f %2.2f]', testConeContrasts(1,testChromaticDirectionIndex), testConeContrasts(2,testChromaticDirectionIndex), testConeContrasts(3,testChromaticDirectionIndex)));
+    title(sprintf('LMS = [%2.2f %2.2f %2.2f]', testConeContrasts(1,ii), testConeContrasts(2,ii), testConeContrasts(3,ii)));
 end
 

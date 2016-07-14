@@ -40,7 +40,7 @@ trialsNum = 500; %500;
 % Also base stimulus length in cone contrast space.  This variable
 % no long has an effect because we scale each base direction to be 
 % just inside monitor gamut
-deltaAngle = 30; % 15; 
+deltaAngle = 45; % 15; 
 baseStimulusLength = 1;
 
 % Number of contrasts to run in each color direction
@@ -179,7 +179,6 @@ parfor ii = 1:size(testConeContrastsDirs,2)
                                           gaborParamsLoop(ii), temporalParams, theOI, theMosaic));
     end
     tempStimDataII{ii} = tempStimDataJJ;
-    clearvars('tempStimDataJJ');
 end 
 
 % Deal the temporary data into the form we want.
@@ -188,7 +187,7 @@ for ii = 1:size(testConeContrasts,2)
         theStimData{ii,jj} = tempStimDataII{ii}{jj};
     end
 end
-clearvars('tempStimDataII');
+clearvars('tempStimDataII','tempStimDataJJ');
 fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
 
 %% Save the data for use by the classifier preprocessing subroutine
