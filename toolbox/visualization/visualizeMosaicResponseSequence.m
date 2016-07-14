@@ -1,5 +1,5 @@
-function visualizeMosaicResponseSequence(signalName, mosaicResponseSequence, eyeMovementSequence, coneTypes, timeAxis, mosaicSize, mosaicFOV, integrationTimeInSeconds, movieFileName)
-% visualizeMosaicResponseSequence(signalName, mosaicResponseSequence, eyeMovementSequence, coneTypes, timeAxis, mosaicSize, mosaicFOV, movieFileName)
+function visualizeMosaicResponseSequence(conditionDir, signalName, mosaicResponseSequence, eyeMovementSequence, coneTypes, timeAxis, mosaicSize, mosaicFOV, integrationTimeInSeconds, movieFileName)
+% visualizeMosaicResponseSequence(conditionDir, signalName, mosaicResponseSequence, eyeMovementSequence, coneTypes, timeAxis, mosaicSize, mosaicFOV, movieFileName)
 %
 % Visualize the time cource of a mosaic response (and possibly the eye movement path)
 % and generate a video of it.
@@ -15,7 +15,7 @@ function visualizeMosaicResponseSequence(signalName, mosaicResponseSequence, eye
     mosaicYaxis = linspace(-mosaicRows/2, mosaicRows/2, mosaicRows);
     
     % Open video stream
-    videoDir = colorGaborDetectVideosDir();
+    videoDir = colorGaborDetectVideosDir(conditionDir);
     videoFilename = fullfile(videoDir, sprintf('%s.m4v', movieFileName));
     writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
     writerObj.FrameRate = 15; 

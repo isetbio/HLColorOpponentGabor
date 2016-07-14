@@ -59,9 +59,6 @@ for ii = 1:nSampleTimes
     fprintf('Computing scene %d of %d, time %0.3f, windowVal %0.3f\n',ii,nSampleTimes,sampleTimes(ii),gaussianTemporalWindow(ii));
     gaborScene{ii} = colorGaborSceneCreate(gaborParams);
 end
-%% Make a movie of the stimulus sequence
-showLuminanceMap = false;
-visualizeSceneOrOpticalImageSequence('scene', gaborScene, sampleTimes, showLuminanceMap, 'gaborStimulusMovie');
 
 %% Create the OI object we'll use to compute the retinal images from the scenes
 %
@@ -78,10 +75,6 @@ for ii = 1:nSampleTimes
     fprintf('Computing optical image %d of %d, time %0.3f\n',ii,nSampleTimes,sampleTimes(ii));
     theOI{ii} = oiCompute(theBaseOI,gaborScene{ii});
 end
-
-%% Make a movie of the stimulus sequence
-showLuminanceMap = false;
-visualizeSceneOrOpticalImageSequence('optical image', theOI, sampleTimes, showLuminanceMap, 'gaborOpticalImageMovie');
 
 %% Create the coneMosaic object we'll use to compute cone respones
 mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
@@ -102,9 +95,19 @@ for ii = 1:nSampleTimes
     fprintf('Computing absorptions %d of %d, time %0.3f\n',ii,nSampleTimes,sampleTimes(ii));
     gaborConeAbsorptions(:,:,ii) = theMosaic.compute(theOI{ii},'currentFlag',false);
 end
-eyeMovementSequence = [];
-visualizeMosaicResponseSequence('isomerizations (R*/cone)', gaborConeAbsorptions, eyeMovementSequence, theMosaic.pattern, sampleTimes, [theMosaic.width theMosaic.height], theMosaic.fov, mosaicParams.integrationTimeInSeconds, 'gaborIsomerizations');
 
+%% Make a movie of the stimulus sequence
+conditionDir = paramsToDirName(gaborParams,temporalParams,oiParams,mosaicParams,[]);
+showLuminanceMap = false;
+visualizeSceneOrOpticalImageSequence(conditionDir, 'scene', gaborScene, sampleTimes, showLuminanceMap, 'gaborStimulusMovie');
+
+%% Make a movie of the stimulus sequence
+showLuminanceMap = false;
+visualizeSceneOrOpticalImageSequence(conditionDir,'optical image', theOI, sampleTimes, showLuminanceMap, 'gaborOpticalImageMovie');
+
+%% Make a movie of the isomerizations
+eyeMovementSequence = [];
+visualizeMosaicResponseSequence(conditionDir, 'isomerizations (R*/cone)', gaborConeAbsorptions, eyeMovementSequence, theMosaic.pattern, sampleTimes, [theMosaic.width theMosaic.height], theMosaic.fov, mosaicParams.integrationTimeInSeconds, 'gaborIsomerizations');
 
 %% Plot cone contrasts as a function of time, as a check
 %
