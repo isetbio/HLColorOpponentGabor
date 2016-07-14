@@ -1,5 +1,5 @@
 function data = transformDataWithPCA(data,numPCAComponents,STANDARDIZE)
-% data = transformDataWithPCA(data,numPCA,STANDARDIZE)
+% data = transformDataWithPCA(data,numPCAComponents,[STANDARDIZE])
 %
 % Projects data along a specified number of principal components. PCA is
 % done on the data matrix and the first numPCA components (ordered by
@@ -14,19 +14,15 @@ function data = transformDataWithPCA(data,numPCAComponents,STANDARDIZE)
 %
 %   numPCAComponents -  The number of principal components to project onto.
 %
-% Optional Paramters as key value paris
-%   'Standardize'    -  true/false: determine whether or not to standardize the
-%                       data, default true.
+%   STANDARDIZE      -  true/false: determine whether or not to standardize the
+%                       data.
 %
 % 7/7/16  xd  wrote it
 
-%% Parse input
-% p = inputParser;
-% p.addRequired('data',@isnumeric);
-% p.addRequired('numPCA',@isnumeric);
-% p.addParameter('Standardize',true,@islogical);
-% p.parse(data,numPCAComponents,varargin{:});
-% STANDARDIZE = p.Results.Standardize;
+%% Set default
+if (nargin < 3 || isempty(STANDARDIZE))
+    STANDARDIZE = true;
+end
 
 %% Standardize the data
 if (STANDARDIZE)

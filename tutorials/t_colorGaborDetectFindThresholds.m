@@ -44,10 +44,14 @@ fprintf('\nWill save classification performance to %s\n', classificationPerforma
 nTrials = numel(theBlankData.theNoStimData.responseInstanceArray);
 testConeContrasts = theBlankData.testConeContrasts;
 testContrasts = theBlankData.testContrasts;
+gaborParams = theBlankData.gaborParams; 
+temporalParams = theBlankData.temporalParams;
+oiParams = theBlankData.oiParams; 
+mosaicParams = theBlankData.mosaicParams;
 
 %% Put zero contrast response instances into data that we will pass to the SVM
 responseSize = numel(theBlankData.theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:));
-fprintf('\nLoading null stimulus data from %d trials into design matrix ...\n', nTrials);
+fprintf('\nInsterting null stimulus data from %d trials into design matrix ...\n', nTrials);
 for iTrial = 1:nTrials
     if (iTrial == 1)
         data = zeros(2*nTrials, responseSize);
@@ -63,11 +67,7 @@ for iTrial = 1:nTrials
     classes(iTrial,1) = 0;
     classes(nTrials+iTrial,1) = 1;
 end
-
-%% Check that performance is at chance if we pass the same data array
-% [checkForChancePercentCorrect,checkForChanceStdErr] = ClassifyForOneDirection(1,data,{theBlankData.theNoStimData},classes,nTrials/2,0,signalSource,PCAComponents,kFold); 
-% fprintf('Classifying blank against blank peformance: %0.2f +/- %0.3f\n',checkForChancePercentCorrect,checkForChanceStdErr);
-% clearvars('theBlankData');
+fprintf('done\n');
 
 %% Do SVM for each test contrast and color direction.
 %
@@ -109,7 +109,7 @@ hFig = figure(1); clf;
 set(hFig, 'Position', [10 10 680 590], 'Color', [1 1 1]);
 for ii = 1:size(testConeContrasts,2)
     subplot(size(testConeContrasts,2), 1, ii)
-    errorbar(testContrasts, squeeze(usePercentCorrect(ii,:)), squeeze(useStdErr(ii, :)), ...
+    errorbar(testContrasts, squeeze(percentCorrect(ii,:)), squeeze(stdErr(ii, :)), ...
         'ro-', 'LineWidth', 2.0, 'MarkerSize', 12, 'MarkerFaceColor', [1.0 0.5 0.50]);
     axis 'square'
     set(gca, 'YLim', [0 1.0],'XLim', [testContrasts(1) testContrasts(end)], 'FontSize', 14);

@@ -7,7 +7,7 @@ function [usePercentCorrect,useStdErr] = ClassifyForOneDirection(ii,data,theStim
 % 7/14/16  dhb, xd  Pulled this out.  Hoping it will work.
 
 for jj = 1:numel(testContrasts)
-    fprintf('\nLoading (%d,%d) stimulus data from %d trials into design matrix ...', ii, jj, nTrials);
+    fprintf('\nInserting (%d,%d) stimulus data from %d trials into design matrix ...', ii, jj, nTrials);
     for iTrial = 1:nTrials
         % Put data into the right form for SVM.
         % This loop overwrites the stimlus data each time through, a
@@ -26,7 +26,7 @@ for jj = 1:numel(testContrasts)
     % Do PCA?
     if (PCAComponents > 0)
         fprintf('\tDoing PCA ... ');
-        theData = transformDataWithPCA(data,PCAComponents,true);
+        theData = transformDataWithPCA(data,PCAComponents);
         fprintf('done\n');
     else
         theData = data;
