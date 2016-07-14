@@ -79,9 +79,9 @@ end
 %% Create the coneMosaic object we'll use to compute cone respones
 mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1/3 1/3 1/3];
-mosaicParams.integrationTimeInSeconds = 500/1000;
-mosaicParams.timeStepInSeconds = 10/1000;
+mosaicParams.LMSRatio = [0.6 0.3 0.1];
+mosaicParams.timeStepInSeconds = temporalParams.stimulusSamplingIntervalInSeconds;
+mosaicParams.integrationTimeInSeconds = mosaicParams.timeStepInSeconds;
 mosaicParams.photonNoise = false;
 mosaicParams.osModel = 'Linear';
 theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
