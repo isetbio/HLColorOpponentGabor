@@ -1,12 +1,14 @@
-function [gaborScenegamutScaleFactor] = colorGaborSceneCreate(gaborParams)
-% [gaborScene,gamutScaleFactor] = colorGaborSceneCreate(gaborParams,coneContrast,background, monitorFile, viewingDistance)
+function [gaborScene, gamutScaleFactor] = colorGaborSceneCreate(gaborParams,gamutCheckFlag)
+% [gaborScene,gamutScaleFactor] = colorGaborSceneCreate(gaborParams,[gamutCheckFlag])
 % 
 % Creates a colored Gabor IBIO scene. The scene will produce a specified
 % set of L, M, and S contrasts on a specific monitor.
 %
-% Also returns a scale factor required to bring the contrast scaled cone
-% contrasts into the gamut of the monitor.  This can be useful for setting
-% up simulated experimental conditions.
+% If gamutCheckFlag is set, it returns the scale factor required to bring
+% the cone contrasts into the gamut of the monitor.  This
+% can be useful for setting up simulated experimental conditions.  In this
+% case, the returned scene is empty.  When gamutCheckFlag is false
+% (default), the returned scale factor is 1.
 %
 % Inputs:
 %   gaborParams    -   A struct that specifies the parameters
@@ -24,7 +26,7 @@ function [gaborScenegamutScaleFactor] = colorGaborSceneCreate(gaborParams)
 %                           monitorFile - A string that specifies the name of the monitor file
 %                                         to load. This will be passed into the displayCreate
 %                                         function in IBIO.
-%                           viewingdistance - The viewing distance in meters.
+%                           viewingDistance - The viewing distance in meters.
 %                                          All fields are required.
 %
 % Example:
@@ -42,10 +44,10 @@ function [gaborScenegamutScaleFactor] = colorGaborSceneCreate(gaborParams)
 % 7/7/16  xd  adapted from t_colorGaborScene
 % 7/7/16 npc  added viewing distance param
 
-%% Parse inputs
-p = inputParser;
-p.addRequired('params',@validateParams);
-p.parse(gaborParams);
+%% Optional arg for when we are maximizing contrast
+if (nargin < 2 || isempty(gamutCheckFlag))
+    gamutCheckFlag = false;
+end
 
 % We also want to make sure that the contrast and background vectors are
 % both column vectors.
@@ -115,14 +117,14 @@ end
 backgroundConeExcitations = M_XYZToCones*xyYToXYZ(backgroundxyY);
 
 % Convert test cone contrasts to cone excitations
-testConeExcitations = (coneContrast .* backgroundConeExcitations);
+testConeExcitationsDir = (coneContrast .* backgroundConeExcitations);
 
 % Make the color gabor in LMS excitations
 gaborConeExcitationsBg = ones(gaborParams.row,gaborParams.col);
 gaborConeExcitations = zeros(gaborParams.row,gaborParams.col,3);
 for ii = 1:3
     gaborConeExcitations(:,:,ii) = gaborConeExcitationsBg*backgroundConeExcitations(ii) + ...
-        gaborModulation*testConeExcitations(ii);
+        gaborModulation*testConeExcitationsDir(ii);
 end
 
 %% Produce an isetbio scene
@@ -141,7 +143,7 @@ end
 display = displayCreate(gaborParams.monitorFile);
 
 % Set the viewing distance
-display = displaySet(display, 'viewingdistance', gaborParams.viewingDistance);
+display = displaySet(display,'viewingdistance', gaborParams.viewingDistance);
 
 % Get display channel spectra.  The S vector displayChannelS is PTB format
 % for specifying wavelength sampling: [startWl deltaWl nWlSamples],
@@ -163,22 +165,33 @@ T_conesForDisplay = SplineCmf(S_cones,T_cones,displayChannelWavelengths);
 M_PrimaryToConeExcitations = T_conesForDisplay*displayChannelSpectra*displayChannelS(2);
 M_ConeExcitationsToPrimary = inv(M_PrimaryToConeExcitations);
 
+%% Find scalar that puts modulation into gamut
+% 
+% If we are doing this, we just get the scale factor and return the empty
+% matrix for the scene
+if (gamutCheckFlag)
+    backgroundPrimary = M_ConeExcitationsToPrimary*backgroundConeExcitations;
+    coneExcitationsDirPrimary = M_ConeExcitationsToPrimary*testConeExcitationsDir;
+    gamutScaleFactor = MaximizeGamutContrast(coneExcitationsDirPrimary,backgroundPrimary);
+    gaborScene = [];
+    return;
+else
+    gamutScaleFactor = 1;
+end
+
 %% Convert the gaborConeExcitations image to RGB
 [gaborConeExcitationsCalFormat,m,n] = ImageToCalFormat(gaborConeExcitations);
 gaborPrimaryCalFormat = M_ConeExcitationsToPrimary*gaborConeExcitationsCalFormat;
 gaborPrimary = CalFormatToImage(gaborPrimaryCalFormat,m,n);
 
-% Check that the image is within the monitor gamut.  If the gabor
+%% Check that the image is within the monitor gamut.  If the gabor
 % represents an actual stimulus produced with an actual monitor, things
 % should be OK if both are represented properly in this routine.
 maxPrimary = max(gaborPrimaryCalFormat(:));
 minPrimary = min(gaborPrimaryCalFormat(:));
-if (minPrimary < 0)
-    error('RGB primary image is out of gamut negative.  You need to do something about this.');
+if (maxPrimary > 1 | minPrimary < 0)
+    error('RGB primary image is out of gamut.  You need to do something about this.');
 end
-
-% Compute the scale factor required to bring this modulation into gamut.
-gamutScaleFactor = 1./maxPrimary;
 
 % Gamma correct the primary values, so we can pop them into an isetbio
 % scene in some straightforward manner.
@@ -191,19 +204,3 @@ gaborScene = sceneSet(gaborScene, 'h fov', fieldOfViewDegs);
 
 end
 
-function pass = validateParams(p)
-% pass = validateParams(p)
-% 
-% Validates that the param struct contains all the necessary fields.
-%
-% 7/7/16  xd  wrote it
-    pass = true;
-    if ~isfield(p,'fieldOfViewDegs'), pass = false; end
-    if ~isfield(p,'cyclesPerDegree'), pass = false; end
-    if ~isfield(p,'gaussianFWHMDegs'), pass = false; end
-    if ~isfield(p,'row'), pass = false; end
-    if ~isfield(p,'col'), pass = false; end
-    if ~isfield(p,'contrast'), pass = false; end
-    if ~isfield(p,'ang'), pass = false; end
-    if ~isfield(p,'ph'), pass = false; end
-end

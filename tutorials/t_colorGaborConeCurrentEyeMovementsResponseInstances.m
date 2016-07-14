@@ -26,22 +26,25 @@ saveData = true;
 
 % These may only work on some computers, depending on what
 % infrastructure is installed.
-visualizeResponses = true;
+visualizeResponses = false;
 exportToPDF = false;
 renderVideo = false;
 
 %% Parameters that define how much we do here
 
 % Define how many noisy data instances to generate
-trialsNum =  500; %500;
+trialsNum =  2; %500;
 
 % Delta angle sampling in LM plane (samples between 0 and 180 degrees)
-% Also base stimulus length in cone contrast space
-deltaAngle = 15; % 15; 
-baseStimulusLength = 0.06;
+%
+% Also base stimulus length in cone contrast space.  This variable
+% no long has an effect because we scale each base direction to be 
+% just inside monitor gamut
+deltaAngle = 90; % 15; 
+baseStimulusLength = 1;
 
 % Number of contrasts to run in each color direction
-nContrastsPerDirection = 10; % 10;
+nContrastsPerDirection = 2; % 10;
 
 %% Define parameters of simulation
 %
@@ -73,7 +76,7 @@ temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 2*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 50;
-temporalParams.milliscondesToIncludeOffset = 25;
+temporalParams.millisecondsToIncludeOffset = 25;
 
 % Optionally, have zero amplitude eye movements
 temporalParams.eyesDoNotMove = false; 
@@ -123,7 +126,7 @@ theMosaic = colorDetectConeMosaicConstruct(mosaicParams);
 LMangles = (0:deltaAngle:180-deltaAngle)/180*pi;
 for angleIndex = 1:numel(LMangles)
     theta = LMangles(angleIndex);
-    testConeContrasts(:,angleIndex) = baseStimulusLength*[cos(theta) sin(theta) 0.0]';
+    testConeContrastsDirs(:,angleIndex) = baseStimulusLength*[cos(theta) sin(theta) 0.0]';
 end
 
 % Contrasts
@@ -149,11 +152,21 @@ theNoStimData = struct(...
 %
 % It is also possible that the parfor loop will not work for you, depending
 % on your Matlab configuration.  In this case, change it to a for loop.
-tempStimDataII = cell(size(testConeContrasts,2),1);
-parfor ii = 1:size(testConeContrasts,2)
-    tempStimDataJJ = cell(1,numel(testContrasts));
+
+% Loop over color directions
+tempStimDataII = cell(size(testConeContrastsDirs,2),1);
+for ii = 1:size(testConeContrastsDirs,2)
+    % Find the highest in gamut cone contrast and define cone contrast
+    % vector to be just under this length.
     gaborParamsLoop(ii) = gaborParams;
+    gaborParamsLoop(ii).coneContrasts = testConeContrastsDirs(:,ii);
+    gaborParamsLoop(ii).contrast = 1;
+    [~,contrastScaleFactor(ii)] = colorGaborSceneCreate(gaborParamsLoop(ii),true);
+    testConeContrasts(:,ii) = 0.98*contrastScaleFactor(ii)*testConeContrastsDirs(:,ii);
     gaborParamsLoop(ii).coneContrasts = testConeContrasts(:,ii);
+    
+    % Make noisy instances for each contrast
+    tempStimDataJJ = cell(1,numel(testContrasts));
     for jj = 1:numel(testContrasts)
         gaborParamsLoop(ii).contrast = testContrasts(jj);
         stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f',...
@@ -189,7 +202,7 @@ if (saveData)
     save(fullfile(outputDir,'responseInstances'), 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 
     scriptDir = colorGaborDetectOutputDir(conditionDir,'scripts');
-    unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);ß
+    unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);
 end
 
 %% Visualize responses

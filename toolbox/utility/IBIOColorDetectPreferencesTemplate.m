@@ -4,7 +4,7 @@ function IBIOColorDetectPreferencesTemplate
 % Set a preference for where this project should dump output
 
 % Root dir
-baseDir = '/Volumes/Users1/Dropbox (Aguirre-Brainard Lab)/IBIO_analysis';
+baseDir = '/Volumes/Users1/DropboxLab/IBIO_analysis';
 if (~exist(baseDir))
     mkdir(baseDir);
 end
