@@ -130,7 +130,7 @@ for angleIndex = 1:numel(LMangles)
 end
 
 % Contrasts
-testContrasts = linspace(0.05, 1, nContrastsPerDirection);
+testContrasts = linspace(0.001, 0.5, nContrastsPerDirection);
 
 %% Generate data for the no stimulus condition
 tic
@@ -143,7 +143,11 @@ theNoStimData = struct(...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, simulationTimeStep, ...
                                          gaborParams, temporalParams, theOI, theMosaic));
-                                     
+ 
+%% Set up output dir
+conditionDir = paramsToDirName(gaborParams,temporalParams,oiParams,mosaicParams,[]);
+outputDir = colorGaborDetectOutputDir(conditionDir,'output');
+
 %% Generate data for all the examined stimuli
 %
 % This code is written in a slightly convoluted manner so that it will run
@@ -154,57 +158,54 @@ theNoStimData = struct(...
 % on your Matlab configuration.  In this case, change it to a for loop.
 
 % Loop over color directions
-tempStimDataII = cell(size(testConeContrastsDirs,2),1);
 parfor ii = 1:size(testConeContrastsDirs,2)
     % Find the highest in gamut cone contrast and define cone contrast
     % vector to be just under this length.
-    gaborParamsLoop(ii) = gaborParams;
-    gaborParamsLoop(ii).coneContrasts = testConeContrastsDirs(:,ii);
-    gaborParamsLoop(ii).contrast = 1;
-    [~,contrastScaleFactor(ii)] = colorGaborSceneCreate(gaborParamsLoop(ii),true);
+    gaborParamsLoop = gaborParams;
+    gaborParamsLoop.coneContrasts = testConeContrastsDirs(:,ii);
+    gaborParamsLoop.contrast = 1;
+    [~,contrastScaleFactor(ii)] = colorGaborSceneCreate(gaborParamsLoop,true);
     testConeContrasts(:,ii) = 0.98*contrastScaleFactor(ii)*testConeContrastsDirs(:,ii);
-    gaborParamsLoop(ii).coneContrasts = testConeContrasts(:,ii);
+    gaborParamsLoop.coneContrasts = testConeContrasts(:,ii);
     
     % Make noisy instances for each contrast
-    tempStimDataJJ = cell(1,numel(testContrasts));
+    stimDataJJ = cell(1,numel(testContrasts));
     for jj = 1:numel(testContrasts)
-        gaborParamsLoop(ii).contrast = testContrasts(jj);
+        gaborParamsLoop.contrast = testContrasts(jj);
         stimulusLabel = sprintf('LMS=%2.2f,%2.2f,%2.2f,Contrast=%2.2f',...
-            gaborParamsLoop(ii).coneContrasts(1), gaborParamsLoop(ii).coneContrasts(2), gaborParamsLoop(ii).coneContrasts(3), gaborParamsLoop(ii).contrast);
-        tempStimDataJJ{jj} = struct(...
-                 'testContrast', gaborParamsLoop(ii).contrast, ...
-            'testConeContrasts', gaborParamsLoop(ii).coneContrasts, ...
+            gaborParamsLoop.coneContrasts(1), gaborParamsLoop.coneContrasts(2), gaborParamsLoop.coneContrasts(3), gaborParamsLoop.contrast);
+        stimDataJJ{jj} = struct(...
+                 'testContrast', gaborParamsLoop.contrast, ...
+            'testConeContrasts', gaborParamsLoop.coneContrasts, ...
                 'stimulusLabel', stimulusLabel, ...
         'responseInstanceArray', colorDetectResponseInstanceArrayFastConstruct(stimulusLabel, trialsNum, simulationTimeStep, ...
-                                          gaborParamsLoop(ii), temporalParams, theOI, theMosaic));
+                                          gaborParamsLoop, temporalParams, theOI, theMosaic));
     end
-    tempStimDataII{ii} = tempStimDataJJ;
+    
+    % Save data for this color direction
+    parforResponseInstancesSave(stimDataJJ,fullfile(outputDir,sprintf('responseInstances_%d',ii)));
 end 
-
-% Deal the temporary data into the form we want.
-for ii = 1:size(testConeContrasts,2)
-    for jj = 1:numel(testContrasts)
-        theStimData{ii,jj} = tempStimDataII{ii}{jj};
-    end
-end
-clearvars('tempStimDataII','tempStimDataJJ');
 fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
 
-%% Save the data for use by the classifier preprocessing subroutine
-%
-% Also copy this script over so that we have a way of looking at how
-% things were set when the data were saved.
-conditionDir = paramsToDirName(gaborParams,temporalParams,oiParams,mosaicParams,[]);
-if (saveData)
-    outputDir = colorGaborDetectOutputDir(conditionDir,'output');
-    fprintf('\nSaving generated data in %s ...\n', outputDir);
-    save(fullfile(outputDir,'responseInstances'), 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
+% Deal the temporary data into the form we want.
+% for ii = 1:size(testConeContrasts,2)
+%     for jj = 1:numel(testContrasts)
+%         theStimData{ii,jj} = stimDataII{ii}{jj};
+%     end
+% end
+% clearvars('tempStimDataII','tempStimDataJJ');
 
-    scriptDir = colorGaborDetectOutputDir(conditionDir,'scripts');
-    unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);
-end
+%% Save the otehr data we need for use by the classifier preprocessing subroutine
+%
+% And also a copy of this script
+save(fullfile(outputDir,'responseInstances_0'), 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
+scriptDir = colorGaborDetectOutputDir(conditionDir,'scripts');
+unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);
 
 %% Visualize responses
+%
+% This will probably not work now that we have mucked with the way the data
+% get saved.
 if (visualizeResponses)
     fprintf('\nVisualizing responses ...\n');
     for ii = 1:size(testConeContrasts,2)

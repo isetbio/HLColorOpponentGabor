@@ -1,5 +1,5 @@
-function data = transformDataWithPCA(data,numPCAComponents,varargin)
-% data = transformDataWithPCA(data,numPCA,varargin)
+function data = transformDataWithPCA(data,numPCAComponents,STANDARDIZE)
+% data = transformDataWithPCA(data,numPCA,STANDARDIZE)
 %
 % Projects data along a specified number of principal components. PCA is
 % done on the data matrix and the first numPCA components (ordered by
@@ -21,12 +21,12 @@ function data = transformDataWithPCA(data,numPCAComponents,varargin)
 % 7/7/16  xd  wrote it
 
 %% Parse input
-p = inputParser;
-p.addRequired('data',@isnumeric);
-p.addRequired('numPCA',@isnumeric);
-p.addParameter('Standardize',true,@islogical);
-p.parse(data,numPCAComponents,varargin{:});
-STANDARDIZE = p.Results.Standardize;
+% p = inputParser;
+% p.addRequired('data',@isnumeric);
+% p.addRequired('numPCA',@isnumeric);
+% p.addParameter('Standardize',true,@islogical);
+% p.parse(data,numPCAComponents,varargin{:});
+% STANDARDIZE = p.Results.Standardize;
 
 %% Standardize the data
 if (STANDARDIZE)

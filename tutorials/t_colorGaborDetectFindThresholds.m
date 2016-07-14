@@ -62,43 +62,31 @@ end
 clearvars('theNoStimData');
 
 %% Do SVM for each test contrast and color direction.
+%
+% This is coded slighly awkwardly to make parfor happy. 
+%
+% If you don't have a computer configured to work with parfor, you may need
+% to change the parfor just to plain for.
 tic
-useData = cell(size(testConeContrasts,2),1);
-percentCorrect = cell(size(testConeContrasts,2),1);
-stdErr = cell(size(testConeContrasts,2),1);
+usePercentCorrect = cell(size(testConeContrasts,2),1);
+useStdErr = cell(size(testConeContrasts,2),1);
 parfor ii = 1:size(testConeContrasts,2)
-    useData{ii} = data;
-    for jj = 1:numel(testContrasts)
-        fprintf('\nLoading (%d,%d) stimulus data from %d trials into design matrix %s ...\n', ii, jj, nTrials);
-        for iTrial = 1:nTrials
-            % Put data into the right form for SVM. 
-            % This loop overwrites the stimlus data each time through, a
-            % little risky, coding wise, but will work unless someone
-            % modifies the data generation tutorial to produce a different
-            % number of noisy instances for different test directions or
-            % contrasts.
-            if (strcmp(signalSource,'photocurrents'))
-                useData{ii}(nTrials+iTrial,:) = theStimData{ii, jj}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
-            else
-                useData{ii}(nTrials+iTrial,:) = theStimData{ii, jj}.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
-            end  
-        end
-        
-        % Do PCA?
-        if (PCAComponents > 0)
-            fprintf('\tDoing PCA\n');
-            useData{ii} = transformDataWithPCA(useData{ii},PCAComponents);
-        end
-        
-        % Perform SVM classification for this stimulus vs the zero contrast stimulus
-        fprintf('\tRunning SVM for chromatic direction %d, contrast %2.2f ...  ', ii , testContrasts(jj));
-        [percentCorrect{ii}(jj), stdErr{ii}(jj)] = classifyWithSVM(useData{ii},classes,kFold);
-        fprintf('Correct: %2.2f%%', percentCorrect{ii}(jj)*100);
-    end
+    [usePercentCorrect{ii},useStdErr{ii}] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,PCAComponents,kFold);  
 end
 fprintf('SVM classification took %2.2f minutes\n', toc/60);
+clearvars('useData','data');
 
-% Save classification performance data and a copy of this script
+% Take the cell array form of the performance data and put it back into the
+% matrix form we expect below and elsewhere.
+for ii = 1:size(testConeContrasts,2)
+    for jj = 1:numel(testContrasts)
+        percentCorrect(ii,jj) = usePercentCorrect{ii}(jj);
+        stdErr(ii,jj) = useStdErr{ii}(jj);
+    end
+end
+clearvars('usePercentCorrect','useStdErr');
+
+%% Save classification performance data and a copy of this script
 save(classificationPerformanceFile, 'percentCorrect', 'stdErr', 'testConeContrasts','testContrasts', 'nTrials', ...
     'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams');
 scriptDir = colorGaborDetectOutputDir(conditionDir,'scripts');
@@ -109,7 +97,7 @@ hFig = figure(1); clf;
 set(hFig, 'Position', [10 10 680 590], 'Color', [1 1 1]);
 for ii = 1:size(testConeContrasts,2)
     subplot(size(testConeContrasts,2), 1, ii)
-    errorbar(testContrasts, squeeze(percentCorrect(ii,:)), squeeze(stdErr(ii, :)), ...
+    errorbar(testContrasts, squeeze(usePercentCorrect(ii,:)), squeeze(useStdErr(ii, :)), ...
         'ro-', 'LineWidth', 2.0, 'MarkerSize', 12, 'MarkerFaceColor', [1.0 0.5 0.50]);
     axis 'square'
     set(gca, 'YLim', [0 1.0],'XLim', [testContrasts(1) testContrasts(end)], 'FontSize', 14);

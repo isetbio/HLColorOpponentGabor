@@ -1,5 +1,5 @@
 function [percentCorrect,stdErr,svm] = classifyWithSVM(data,classes,kFold)
-% percentCorrect = classifyWithSVM(data,classes,kFold)
+% [percentCorrect,stdErr,svm] = classifyWithSVM(data,classes,kFold)
 % 
 % Trains a SVM using kFold Cross Validation and returns the average
 % percent correct. The data will be divided into ten roughly evenly sized
@@ -16,14 +16,14 @@ function [percentCorrect,stdErr,svm] = classifyWithSVM(data,classes,kFold)
 % 7/7/16  xd  wrote it
 
 %% Parse inputs
-p = inputParser;
-p.addRequired('data',@isnumeric);
-validateClasses = @(X) numel(unique(X))==2;
-p.addRequired('classes',validateClasses);
-p.parse(data,classes);
+% p = inputParser;
+% p.addRequired('data',@isnumeric);
+% validateClasses = @(X) numel(unique(X))==2;
+% p.addRequired('classes',validateClasses);
+% p.parse(data,classes);
 
 %% Train cross validated SVM
-svm = fitcsvm(data,classes,'KernelScale','auto');
+svm = fitcsvm(data,classes,'KernelFunction','linear','KernelScale','auto');
 CVSVM = crossval(svm,'KFold',kFold);
 percentCorrect = 1 - kfoldLoss(CVSVM,'lossfun','classiferror','mode','individual');
 stdErr = std(percentCorrect)/sqrt(kFold);
