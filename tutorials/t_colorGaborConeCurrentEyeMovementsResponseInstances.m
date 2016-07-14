@@ -139,6 +139,13 @@ theNoStimData = struct(...
                                          gaborParams, temporalParams, theOI, theMosaic));
                                      
 %% Generate data for all the examined stimuli
+%
+% This code is written in a slightly convoluted manner so that it will run
+% inside a parfor loop -- we had to define some single indexed temp
+% variables to get this to work.
+%
+% It is also possible that the parfor loop will not work for you, depending
+% on your Matlab configuration.  In this case, change it to a for loop.
 tempStimDataII = cell(size(testConeContrasts,2),1);
 parfor ii = 1:size(testConeContrasts,2)
     tempStimDataJJ = cell(1,numel(testContrasts));
@@ -156,18 +163,25 @@ parfor ii = 1:size(testConeContrasts,2)
                                           gaborParamsLoop(ii), temporalParams, theOI, theMosaic));
     end
     tempStimDataII{ii} = tempStimDataJJ;
+    clearvars('tempStimDataJJ');
 end 
+
+% Deal the temporary data into the form we want.
 for ii = 1:size(testConeContrasts,2)
     for jj = 1:numel(testContrasts)
         theStimData{ii,jj} = tempStimDataII{ii}{jj};
     end
 end
+clearvars('tempStimDataII');
 fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
 
 %% Save the data for use by the classifier preprocessing subroutine
+%
+% We also copy this script over so that we have a way of looking at how
+% things were set when the data were saved.
 conditionDir = paramsToDirName(gaborParams,temporalParams,oiParams,mosaicParams,[]);
 if (saveData)
-    outputDir = colorGaborDetectOutputDir(conditionDir);
+    outputDir = colorGaborDetectOutputDir(conditionDir,'output');
     fprintf('\nSaving generated data in %s ...\n', outputDir);
     save(fullfile(outputDir,'responseInstances'), 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
 end
@@ -185,7 +199,7 @@ if (visualizeResponses)
                 figHandle = visualizeResponseInstance(conditionDir, s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum, renderVideo);
                 if (exportToPDF)
                     figFileNames{ii, jj, iTrial} = ...
-                        fullfile(colorGaborDetectFiguresDir(conditionDir),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum));
+                        fullfile(colorGaborDetectFiguresDir(conditionDir),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum),'figures');
                     NicePlot.exportFigToPDF(figFileNames{ii, jj, iTrial}, figHandle, 300);
                 end
             end % iTrial
@@ -194,7 +208,7 @@ if (visualizeResponses)
 
     % Export summary PDF with all responses
     if (exportToPDF)
-        summaryPDF = fullfile(colorGaborDetectFiguresDir(conditionDir), 'AllInstances.pdf');
+        summaryPDF = fullfile(colorGaborDetectFiguresDir(conditionDir,'figures'), 'AllInstances.pdf');
         fprintf('Exporting a summary PDF with all response instances in %s\n', summaryPDF);
         NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
     end

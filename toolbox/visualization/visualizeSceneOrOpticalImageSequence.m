@@ -66,7 +66,7 @@ if (showLuminanceMap)
 end
 
 % Open video stream
-videoDir = colorGaborDetectVideosDir(conditionDir);
+videoDir = colorGaborDetectVideosDir(conditionDir,'videos');
 videoFilename = fullfile(videoDir, sprintf('%s.m4v', movieFileName));
 writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
 writerObj.FrameRate = 15;

@@ -26,7 +26,7 @@ axisFontSize = 12;
 
 %% Read the output of t_colorGaborDetectFindThresholds
 responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00_4angles';
-dataDir = colorGaborDetectOutputDir();
+dataDir = colorGaborDetectOutputDir(conditionDir,'output');
 classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
 theData = load(classificationPerformanceFile);
 

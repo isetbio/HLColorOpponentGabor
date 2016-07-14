@@ -15,7 +15,7 @@ function visualizeMosaicResponseSequence(conditionDir, signalName, mosaicRespons
     mosaicYaxis = linspace(-mosaicRows/2, mosaicRows/2, mosaicRows);
     
     % Open video stream
-    videoDir = colorGaborDetectVideosDir(conditionDir);
+    videoDir = colorGaborDetectVideosDir(conditionDir,'videos');
     videoFilename = fullfile(videoDir, sprintf('%s.m4v', movieFileName));
     writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
     writerObj.FrameRate = 15; 

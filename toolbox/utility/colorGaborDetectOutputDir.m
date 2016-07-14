@@ -1,6 +1,4 @@
-function theDir = colorGaborDetectOutputDir(conditionDir)
-    
-subDir = 'output';
+function theDir = colorGaborDetectOutputDir(conditionDir,subDir)
 
 if (ispref('IBIOColorDetect','outputBaseDir'))
     topDir = fullfile(getpref('IBIOColorDetect','outputBaseDir'),conditionDir);

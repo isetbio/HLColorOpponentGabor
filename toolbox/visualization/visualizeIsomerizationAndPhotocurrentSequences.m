@@ -1,5 +1,5 @@
-function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, renderVideo)
-% visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, renderVideo)
+function visualizeIsomerizationAndPhotocurrentSequences(conditionDir, theMosaic, timeAxis, renderVideo)
+% visualizeIsomerizationAndPhotocurrentSequences(conditionDir, theMosaic, timeAxis, renderVideo)
 %
 % Visualize the time cource of a mosaic response and optionally generate a
 % video of it.
@@ -23,7 +23,7 @@ function visualizeIsomerizationAndPhotocurrentSequences(theMosaic, timeAxis, ren
     
     if (renderVideo)
         % Open video stream
-        videoDir = colorGaborDetectVideosDir();
+        videoDir = colorGaborDetectVideosDir(conditoinDir,'videos');
         videoFilename = fullfile(videoDir, sprintf('IsomerizationsWithEyeMovements.m4v'));
         writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
         writerObj.FrameRate = 15; 

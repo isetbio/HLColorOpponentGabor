@@ -33,7 +33,7 @@ function hFig = visualizeResponseInstance(conditionDir, responseInstance, respon
 
     if (renderVideo)
         % Open video stream
-        videoDir = colorGaborDetectVideosDir(conditionDir);
+        videoDir = colorGaborDetectVideosDir(conditionDir,'videos');
         if (~exist(fullfile(videoDir,responseLabel),'dir'))
             mkdir(fullfile(videoDir,responseLabel));
         end
