@@ -285,7 +285,7 @@ gaborConeMosaic.noiseFlag = false;
 isomerizations = gaborConeMosaic.compute(gaborOI,'currentFlag',false);
 
 %% Take a look at the mosaic responses
-gaborConeMosaic.guiWindow;
+gaborConeMosaic.window;
 
 %% Get min max for LMS cone absorptions
 % Extract the min and max absorptions in a loop. Since we are
