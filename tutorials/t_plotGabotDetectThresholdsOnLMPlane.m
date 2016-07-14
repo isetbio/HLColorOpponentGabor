@@ -25,10 +25,11 @@ titleFontSize = 16;
 axisFontSize = 12;
 
 %% Read the output of t_colorGaborDetectFindThresholds
-responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00_4angles';
+conditionDir = 'cpd2_sfv1.00_fw0.350_tau0.165_dur0.33_em0_use50_off35_b0_l1_LMS1.00_0.00_0.00_mfv1.00';
+classificationPerformanceFile = 'ClassificationPerformance_photocurrents_kFold5_pca200';
+%responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00_4angles';
 dataDir = colorGaborDetectOutputDir(conditionDir,'output');
-classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
-theData = load(classificationPerformanceFile);
+theData = load(fullfile(dataDir,classificationPerformanceFile));
 
 % Extract data from loaded struct into convenient form
 testContrasts = theData.testContrasts;

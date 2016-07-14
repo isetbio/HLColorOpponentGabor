@@ -108,7 +108,7 @@ oiParams.lens = true;
 % Cone mosaic parameters
 mosaicParams.fieldOfViewDegs = gaborParams.fieldOfViewDegs;
 mosaicParams.macular = true;
-mosaicParams.LMSRatio = [1 0 0];
+mosaicParams.LMSRatio = [0.62 0.31 0.07];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = mosaicParams.timeStepInSeconds;
 mosaicParams.photonNoise = true;
@@ -219,7 +219,7 @@ if (visualizeResponses)
                         fullfile(colorGaborDetectOutputDir(conditionDir),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum),'figures');
                     NicePlot.exportFigToPDF(figFileNames{ii, jj, iTrial}, figHandle, 300);
                 end
-            end % iTrial
+            end 
         end
     end
 
