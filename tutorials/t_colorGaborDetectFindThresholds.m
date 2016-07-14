@@ -31,54 +31,60 @@ kFold = 5;
 PCAComponents = 200;
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
+%
+% The file ending in _0 gives us the no stimulus data 
 dataDir = colorGaborDetectOutputDir(conditionDir,'output');
 responseFile = 'responseInstances_0';
 responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('ClassificationPerformance_%s_kFold%0.0f_pca%0.0f.mat',signalSource,kFold,PCAComponents));
 fprintf('\nLoading data from %s ...', responsesFullFile); 
-load(responsesFullFile);
+theBlankData = load(responsesFullFile);
 fprintf('done\n');
 fprintf('\nWill save classification performance to %s\n', classificationPerformanceFile);
-nTrials = numel(theNoStimData.responseInstanceArray);
+nTrials = numel(theBlankData.theNoStimData.responseInstanceArray);
 
 %% Put zero contrast response instances into data that we will pass to the SVM
-responseSize = numel(theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:));
-fprintf('\nLoading null stimulus data from %d trials into design matrix %s ...\n', nTrials);
+responseSize = numel(theBlankData.theNoStimData.responseInstanceArray(1).theMosaicPhotoCurrents(:));
+fprintf('\nLoading null stimulus data from %d trials into design matrix ...\n', nTrials);
 for iTrial = 1:nTrials
     if (iTrial == 1)
         data = zeros(2*nTrials, responseSize);
         classes = zeros(2*nTrials, 1);
     end
     if (strcmp(signalSource,'photocurrents'))
-        data(iTrial,:) = theNoStimData.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+        data(iTrial,:) = theBlankData.theNoStimData.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
     else
-        data(iTrial,:) = theNoStimData.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
+        data(iTrial,:) = theBlankData.theNoStimData.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
     end
     
     % Set up classes variable
     classes(iTrial,1) = 0;
     classes(nTrials+iTrial,1) = 1;
 end
-clearvars('theNoStimData');
+
+%% Check that performance is at chance if we pass the same data array
+[checkForChancePercentCorrect,checkForChanceStdErr] = ClassifyForOneDirection(1,data,{theBlankData.theNoStimData},classes,nTrials,0,signalSource,PCAComponents,kFold); 
+fprintf('Classifying blank against blank peformance: %0.2f +/- %0.3f\n',checkForChancePercentCorrect,checkForChanceStdErr);
+clearvars('theBlankData');
 
 %% Do SVM for each test contrast and color direction.
 %
-% This is coded slighly awkwardly to make parfor happy. 
+% The work is done inside routine ClassifyForOneDirection.  We needed to
+% encapsulate it there to make parfor happy.
 %
 % If you don't have a computer configured to work with parfor, you may need
 % to change the parfor just to plain for.
 tic
 usePercentCorrect = cell(size(testConeContrasts,2),1);
 useStdErr = cell(size(testConeContrasts,2),1);
-parfor ii = 1:size(testConeContrasts,2)
-    thisResponseFile = sprintf('responseInstances_%d.mat',ii);
+for ii = 1:size(testConeContrasts,2)
+    thisResponseFile = sprintf('responseInstances_%d',ii);
     thisResponseFullFile = fullfile(dataDir, sprintf('%s.mat',thisResponseFile));
     theData = load(thisResponseFullFile);
-    theStimData = theData.theStimData;
-    [usePercentCorrect{ii},useStdErr{ii}] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,PCAComponents,kFold);  
+    [usePercentCorrect{ii},useStdErr{ii}] = ClassifyForOneDirection(ii,data,theData.theStimData,classes,nTrials,testContrasts,signalSource,PCAComponents,kFold);  
 end
 fprintf('SVM classification took %2.2f minutes\n', toc/60);
-clearvars('useData','data');
+clearvars('theData','useData','data');
 
 % Take the cell array form of the performance data and put it back into the
 % matrix form we expect below and elsewhere.

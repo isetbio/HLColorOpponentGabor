@@ -3,7 +3,7 @@
 % Show how to generate a number of response instances for a given stimulus condition.
 % This tutorial relies on routine
 %   colorDetectResponseInstanceArrayConstruct
-% which does most of the hard work.  The code underlying colorDetectResponseInstanceArrayConstruct
+% which does most of the hard work.  The basic code underlying colorDetectResponseInstanceArrayConstruct
 % itself is demonstrated in tutorial 
 %   t_colorGaborConeCurrentEyeMovementsMovie.
 %
@@ -33,18 +33,20 @@ renderVideo = false;
 %% Parameters that define how much we do here
 
 % Define how many noisy data instances to generate
-trialsNum = 2; %500;
+trialsNum = 500; %500;
 
 % Delta angle sampling in LM plane (samples between 0 and 180 degrees)
 %
 % Also base stimulus length in cone contrast space.  This variable
 % no long has an effect because we scale each base direction to be 
 % just inside monitor gamut
-deltaAngle = 90; % 15; 
+deltaAngle = 30; % 15; 
 baseStimulusLength = 1;
 
 % Number of contrasts to run in each color direction
-nContrastsPerDirection = 2; % 10;
+nContrastsPerDirection = 4; % 10;
+lowContrast = 0.001;
+highContrast = 0.4;
 
 %% Define parameters of simulation
 %
@@ -109,8 +111,8 @@ mosaicParams.macular = true;
 mosaicParams.LMSRatio = [1 0 0];
 mosaicParams.timeStepInSeconds = simulationTimeStep;
 mosaicParams.integrationTimeInSeconds = mosaicParams.timeStepInSeconds;
-mosaicParams.photonNoise = false;
-mosaicParams.osNoise = false;
+mosaicParams.photonNoise = true;
+mosaicParams.osNoise = true;
 mosaicParams.osModel = 'Linear';
 
 %% Create the optics
@@ -130,7 +132,7 @@ for angleIndex = 1:numel(LMangles)
 end
 
 % Contrasts
-testContrasts = linspace(0.001, 0.5, nContrastsPerDirection);
+testContrasts = linspace(lowContrast, highContrast, nContrastsPerDirection);
 
 %% Generate data for the no stimulus condition
 tic
@@ -187,15 +189,7 @@ parfor ii = 1:size(testConeContrastsDirs,2)
 end 
 fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
 
-% Deal the temporary data into the form we want.
-% for ii = 1:size(testConeContrasts,2)
-%     for jj = 1:numel(testContrasts)
-%         theStimData{ii,jj} = stimDataII{ii}{jj};
-%     end
-% end
-% clearvars('tempStimDataII','tempStimDataJJ');
-
-%% Save the otehr data we need for use by the classifier preprocessing subroutine
+%% Save the other data we need for use by the classifier preprocessing subroutine
 %
 % And also a copy of this script
 save(fullfile(outputDir,'responseInstances_0'), 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
@@ -204,8 +198,12 @@ unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);
 
 %% Visualize responses
 %
-% This will probably not work now that we have mucked with the way the data
-% get saved.
+% PROBABLY BROKEN: This will probably not work now that we have mucked with
+% the way the data get saved.
+%
+% Also, the time numbers on the videos do not seem to correspond to the
+% stimulus peak at time 0, and the videos look screwy in the no noise
+% condition.
 if (visualizeResponses)
     fprintf('\nVisualizing responses ...\n');
     for ii = 1:size(testConeContrasts,2)

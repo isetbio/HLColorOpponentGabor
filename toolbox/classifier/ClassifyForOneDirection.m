@@ -1,5 +1,5 @@
-function [usePercentCorrect,useStdErr] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,PCAComponents,kFold)
-% [usePercentCorrect,useStdErr] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,PCAComponents,kFold)
+function [usePercentCorrect,useStdErr] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,signalSource,PCAComponents,kFold)
+% [usePercentCorrect,useStdErr] = ClassifyForOneDirection(ii,data,theStimData,classes,nTrials,testContrasts,signalSource,PCAComponents,kFold)
 %
 % Called within a parfor loop in t_colorGaborDetectFindThresholds.  We had
 % to put this into a function to avoid some parfor errors.
@@ -16,9 +16,9 @@ for jj = 1:numel(testContrasts)
         % number of noisy instances for different test directions or
         % contrasts.
         if (strcmp(signalSource,'photocurrents'))
-            data(nTrials+iTrial,:) = theStimData{ii, jj}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
+            data(nTrials+iTrial,:) = theStimData{jj}.responseInstanceArray(iTrial).theMosaicPhotoCurrents(:);
         else
-            data(nTrials+iTrial,:) = theStimData{ii, jj}.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
+            data(nTrials+iTrial,:) = theStimData{jj}.responseInstanceArray(iTrial).theMosaicIsomerizations(:);
         end
     end
     fprintf(' done\n');
