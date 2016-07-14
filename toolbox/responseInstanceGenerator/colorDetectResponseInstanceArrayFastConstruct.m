@@ -3,9 +3,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
 % 
 % Construct an array of nTrials response instances given the simulationTimeStep, gaborParams, temporalParams, theOI, theMosaic
 %
-%
 %  7/10/16  npc Wrote it.
-%
 
     % Inform user regarding the computation progress
     progressHandle = generateProgressBar('Starting computation ...');
@@ -100,7 +98,7 @@ function responseInstanceArray = colorDetectResponseInstanceArrayFastConstruct(s
         timeAxis = timeAxis - timeAxis(end)/2;
         
         % Only include the central response
-        timeIndicesToKeep = find(abs(timeAxis)*1000 <= temporalParams.millisecondsToInclude/2);
+        timeIndicesToKeep = find(abs(timeAxis*1000-temporalParams.millisecondsToIncludeOffset) <= temporalParams.millisecondsToInclude/2);
         
         % Accumulate data in cell array of structs. 
         responseInstanceArray(iTrial) = struct(...

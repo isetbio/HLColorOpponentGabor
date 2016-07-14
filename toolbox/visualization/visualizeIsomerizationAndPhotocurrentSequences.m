@@ -23,7 +23,7 @@ function visualizeIsomerizationAndPhotocurrentSequences(conditionDir, theMosaic,
     
     if (renderVideo)
         % Open video stream
-        videoDir = colorGaborDetectVideosDir(conditoinDir,'videos');
+        videoDir = colorGaborDetectOutputDir(conditoinDir,'videos');
         videoFilename = fullfile(videoDir, sprintf('IsomerizationsWithEyeMovements.m4v'));
         writerObj = VideoWriter(videoFilename, 'MPEG-4'); % H264 format
         writerObj.FrameRate = 15; 

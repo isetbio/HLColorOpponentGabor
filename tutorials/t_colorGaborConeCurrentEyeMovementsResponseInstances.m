@@ -64,13 +64,16 @@ gaborParams.viewingDistance = 0.75;
 % Temporal modulation and stimulus sampling parameters.
 %
 % The millisecondsToInclude field tells how many milliseconds of the
-% stimulus around the peak to include in data saved to pass to the
-% classification routines.
+% stimulus around the stimulus peak to include in data saved to pass to the
+% classification routines.  Since the response might be delayed, we also
+% allow specification of an offset (positive numbers mean later) around
+% which the window is taken.
 frameRate = 60;
 temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 2*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 50;
+temporalParams.milliscondesToIncludeOffset = 25;
 
 % Optionally, have zero amplitude eye movements
 temporalParams.eyesDoNotMove = false; 
@@ -177,13 +180,16 @@ fprintf('Finished generating responses in %2.2f minutes\n', toc/60);
 
 %% Save the data for use by the classifier preprocessing subroutine
 %
-% We also copy this script over so that we have a way of looking at how
+% Also copy this script over so that we have a way of looking at how
 % things were set when the data were saved.
 conditionDir = paramsToDirName(gaborParams,temporalParams,oiParams,mosaicParams,[]);
 if (saveData)
     outputDir = colorGaborDetectOutputDir(conditionDir,'output');
     fprintf('\nSaving generated data in %s ...\n', outputDir);
     save(fullfile(outputDir,'responseInstances'), 'theStimData', 'theNoStimData', 'testConeContrasts', 'testContrasts', 'theMosaic', 'gaborParams', 'temporalParams', 'oiParams', 'mosaicParams', '-v7.3');
+
+    scriptDir = colorGaborDetectOutputDir(conditionDir,'scripts');
+    unix(['cp ' mfilename('fullpath') '.m ' scriptDir]);ß
 end
 
 %% Visualize responses
@@ -199,7 +205,7 @@ if (visualizeResponses)
                 figHandle = visualizeResponseInstance(conditionDir, s.responseInstanceArray(iTrial), stimulusLabel, theMosaic, iTrial, trialsNum, renderVideo);
                 if (exportToPDF)
                     figFileNames{ii, jj, iTrial} = ...
-                        fullfile(colorGaborDetectFiguresDir(conditionDir),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum),'figures');
+                        fullfile(colorGaborDetectOutputDir(conditionDir),sprintf('%s_Trial%dOf%d.pdf', stimulusLabel, iTrial, trialsNum),'figures');
                     NicePlot.exportFigToPDF(figFileNames{ii, jj, iTrial}, figHandle, 300);
                 end
             end % iTrial
@@ -208,7 +214,7 @@ if (visualizeResponses)
 
     % Export summary PDF with all responses
     if (exportToPDF)
-        summaryPDF = fullfile(colorGaborDetectFiguresDir(conditionDir,'figures'), 'AllInstances.pdf');
+        summaryPDF = fullfile(colorGaborDetectOutputDir(conditionDir,'figures'), 'AllInstances.pdf');
         fprintf('Exporting a summary PDF with all response instances in %s\n', summaryPDF);
         NicePlot.combinePDFfilesInSinglePDF(figFileNames(:), summaryPDF);
     end
