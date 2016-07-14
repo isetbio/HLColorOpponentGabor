@@ -33,18 +33,18 @@ renderVideo = false;
 %% Parameters that define how much we do here
 
 % Define how many noisy data instances to generate
-trialsNum =  2; %500;
+trialsNum = 500; %500;
 
 % Delta angle sampling in LM plane (samples between 0 and 180 degrees)
 %
 % Also base stimulus length in cone contrast space.  This variable
 % no long has an effect because we scale each base direction to be 
 % just inside monitor gamut
-deltaAngle = 90; % 15; 
+deltaAngle = 30; % 15; 
 baseStimulusLength = 1;
 
 % Number of contrasts to run in each color direction
-nContrastsPerDirection = 2; % 10;
+nContrastsPerDirection = 5; % 10;
 
 %% Define parameters of simulation
 %
@@ -76,7 +76,7 @@ temporalParams.windowTauInSeconds = 0.165;
 temporalParams.stimulusDurationInSeconds = 2*temporalParams.windowTauInSeconds;
 temporalParams.stimulusSamplingIntervalInSeconds = 1/frameRate;
 temporalParams.millisecondsToInclude = 50;
-temporalParams.millisecondsToIncludeOffset = 25;
+temporalParams.millisecondsToIncludeOffset = 35;
 
 % Optionally, have zero amplitude eye movements
 temporalParams.eyesDoNotMove = false; 
@@ -130,7 +130,7 @@ for angleIndex = 1:numel(LMangles)
 end
 
 % Contrasts
-testContrasts = linspace(0.1, 1, nContrastsPerDirection);
+testContrasts = linspace(0.05, 1, nContrastsPerDirection);
 
 %% Generate data for the no stimulus condition
 tic
@@ -155,7 +155,7 @@ theNoStimData = struct(...
 
 % Loop over color directions
 tempStimDataII = cell(size(testConeContrastsDirs,2),1);
-for ii = 1:size(testConeContrastsDirs,2)
+parfor ii = 1:size(testConeContrastsDirs,2)
     % Find the highest in gamut cone contrast and define cone contrast
     % vector to be just under this length.
     gaborParamsLoop(ii) = gaborParams;

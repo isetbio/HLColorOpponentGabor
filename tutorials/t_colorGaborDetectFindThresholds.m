@@ -22,13 +22,13 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'../toolbox'));
 signalSource = 'photocurrents';
 
 %% Get data saved by t_colorGaborConeCurrentEyeMovementsResponseInstances
+conditionDir = 'cpd2_sfv1.00_fw0.350_tau0.165_dur0.33_em0_use50_off35_b0_l1_LMS1.00_0.00_0.00_mfv1.00';
 dataDir = colorGaborDetectOutputDir(conditionDir,'output');
-responseFile = 'colorGaborDetectResponses_LMS_1.00_0.00_0.00';
+responseFile = 'responseInstances';
 responsesFullFile = fullfile(dataDir, sprintf('%s.mat',responseFile));
 classificationPerformanceFile = fullfile(dataDir, sprintf('%s_ClassificationPerformance.mat',responseFile));
 fprintf('\nLoading data from %s ...', responsesFullFile); 
 fprintf('\nWill save classification performance in %s\n', classificationPerformanceFile);
-pause(0.1);
 load(responsesFullFile);
 nTrials = numel(theNoStimData.responseInstanceArray);
 
@@ -47,12 +47,12 @@ for iTrial = 1:nTrials
     end
     classes(iTrial,1) = 0;
 end
-% clear to save memory
-clear 'theNoStimData'
+clearvars('theNoStimData');
 
-tic
+
 %% Do SVM for each test contrast and color direction.
-for testChromaticDirectionIndex = 1:size(testConeContrasts,2)
+tic
+parfor testChromaticDirectionIndex = 1:size(testConeContrasts,2)
     for testContrastIndex = 1:numel(testContrasts)
         fprintf('\nLoading (%d,%d) stimulus data from %d trials into design matrix %s ...\n', testChromaticDirectionIndex, testContrastIndex, nTrials);
         for iTrial = 1:nTrials
