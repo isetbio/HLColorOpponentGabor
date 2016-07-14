@@ -1,8 +1,12 @@
-function gaborScene = colorGaborSceneCreate(gaborParams)
-% gaborScene = colorGaborSceneCreate(gaborParams,coneContrast,background, monitorFile, viewingDistance)
+function [gaborScenegamutScaleFactor] = colorGaborSceneCreate(gaborParams)
+% [gaborScene,gamutScaleFactor] = colorGaborSceneCreate(gaborParams,coneContrast,background, monitorFile, viewingDistance)
 % 
 % Creates a colored Gabor IBIO scene. The scene will produce a specified
 % set of L, M, and S contrasts on a specific monitor.
+%
+% Also returns a scale factor required to bring the contrast scaled cone
+% contrasts into the gamut of the monitor.  This can be useful for setting
+% up simulated experimental conditions.
 %
 % Inputs:
 %   gaborParams    -   A struct that specifies the parameters
@@ -169,9 +173,12 @@ gaborPrimary = CalFormatToImage(gaborPrimaryCalFormat,m,n);
 % should be OK if both are represented properly in this routine.
 maxPrimary = max(gaborPrimaryCalFormat(:));
 minPrimary = min(gaborPrimaryCalFormat(:));
-if (maxPrimary > 1 || minPrimary < 0)
-    error('RGB primary image is out of gamut.  You need to do something about this.');
+if (minPrimary < 0)
+    error('RGB primary image is out of gamut negative.  You need to do something about this.');
 end
+
+% Compute the scale factor required to bring this modulation into gamut.
+gamutScaleFactor = 1./maxPrimary;
 
 % Gamma correct the primary values, so we can pop them into an isetbio
 % scene in some straightforward manner.
